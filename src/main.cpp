@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
   strm.open(argv[1], std::ios_base::in);
   printf("\n%s\n", argv[1]);
   if (!strm.is_open()) {
-    printf("Log");
+    fprintf(stderr, "Cannot find %s: No such file or directory", argv[1]);
     return 1;
   }
 
