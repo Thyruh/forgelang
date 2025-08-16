@@ -1,10 +1,24 @@
-#include<cstdio>
-#include<cstdlib>
-#include<iterator>
-#include<fstream>
-#include<vector>
-#include<string>
-#include<sstream>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+std::string readContents(int in_num, char* filepath) {
+  std::fstream strm;
+
+  strm.open(filepath, std::ios_base::in);
+  if (!strm.is_open()) {
+    fprintf(stderr, "Cannot find %s: No such file or directory\n", filepath);
+  }
+
+  std::stringstream contents_string;
+
+  contents_string << strm.rdbuf();
+  std::string contents = contents_string.str();
+  return contents;
+}
+
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -14,21 +28,7 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  std::fstream strm;
-
-  strm.open(argv[1], std::ios_base::in);
-  printf("\n%s\n", argv[1]);
-  if (!strm.is_open()) {
-    fprintf(stderr, "Cannot find %s: No such file or directory", argv[1]);
-    return 1;
-  }
-
-  std::stringstream contents_string;
-
-  contents_string << strm.rdbuf();
-  std::string contents = contents_string.str();
-
+  std::string contents = readContents(argc, argv[1]);
   printf("Read file: %s.\n", argv[1]);
   printf("Contents:\n\n\"%s \"\n", contents.c_str()); // Lets pretend I never wrote that
-  return EXIT_SUCCESS;
 }
