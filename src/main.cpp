@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "../include/tokenizer.h"
 
 std::string readContents(int in_num, char* filepath) {
   std::fstream strm;
@@ -28,7 +29,9 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+
   std::string contents = readContents(argc, argv[1]);
+
   printf("Read file: %s.\n", argv[1]);
   printf("Contents:\n\n\"%s \"\n", contents.c_str()); // Lets pretend I never wrote that
 }

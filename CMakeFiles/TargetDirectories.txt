@@ -1,3 +1,0 @@
-/home/thyruh/dev/projects/forge/build/CMakeFiles/forge.dir
-/home/thyruh/dev/projects/forge/build/CMakeFiles/edit_cache.dir
-/home/thyruh/dev/projects/forge/build/CMakeFiles/rebuild_cache.dir
