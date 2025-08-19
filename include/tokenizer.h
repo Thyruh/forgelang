@@ -1,3 +1,3 @@
 #include <string>
 
-int tokenizer(std::string contents);
+std::string tokenizer(std::string contents);

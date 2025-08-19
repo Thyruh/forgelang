@@ -1,5 +1,9 @@
 #include<string>
 
-int tokenizer(std::string contents) {
-  return 0;
+std::string tokenizer(std::string contents) {
+  // temporal for tests:
+  std::string contentsTemp = "int main\nreturn 8;";
+  printf("%s", contentsTemp.c_str());
+
+  return contents;
 }

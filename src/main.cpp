@@ -5,21 +5,7 @@
 #include <string>
 #include "../include/tokenizer.h"
 
-std::string readContents(int in_num, char* filepath) {
-  std::fstream strm;
-
-  strm.open(filepath, std::ios_base::in);
-  if (!strm.is_open()) {
-    fprintf(stderr, "Cannot find %s: No such file or directory\n", filepath);
-  }
-
-  std::stringstream contents_string;
-
-  contents_string << strm.rdbuf();
-  std::string contents = contents_string.str();
-  return contents;
-}
-
+std::string readContents(int in_num, char* filepath);
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -33,5 +19,21 @@ int main(int argc, char* argv[]) {
   std::string contents = readContents(argc, argv[1]);
 
   printf("Read file: %s.\n", argv[1]);
-  printf("Contents:\n\n\"%s \"\n", contents.c_str()); // Lets pretend I never wrote that
+  printf("Contents: \n\n%s\n", contents.c_str());
+  return EXIT_SUCCESS;
+}
+
+std::string readContents(int in_num, char* filepath) {
+  std::fstream strm;
+
+  strm.open(filepath, std::ios_base::in);
+  if (!strm.is_open()) {
+    fprintf(stderr, "Cannot find %s: No such file or directory\n", filepath);
+  }
+
+  std::stringstream contents_string;
+
+  contents_string << strm.rdbuf();
+  std::string contents = contents_string.str();
+  return contents;
 }
