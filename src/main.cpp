@@ -3,9 +3,36 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include "../include/tokenizer.h"
+#include <optional>
 
-std::string readContents(int in_num, char* filepath);
+enum class tokenType{
+  _return,
+  semicolon,
+  int_lit,
+  open_paren,
+  close_paren
+};
+
+struct token{
+  tokenType type;
+  std::optional<std::string> value;
+};
+
+std::string readContents(int in_num, char* filepath) {
+  std::fstream strm;
+
+  strm.open(filepath, std::ios_base::in);
+  if (!strm.is_open()) {
+    fprintf(stderr, "Cannot find %s: No such file or directory\n", filepath);
+ }
+
+  std::stringstream contents_string;
+
+  contents_string << strm.rdbuf();
+  std::string contents = contents_string.str();
+  return contents;
+}
+
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -21,19 +48,4 @@ int main(int argc, char* argv[]) {
   printf("Read file: %s.\n", argv[1]);
   printf("Contents: \n\n%s\n", contents.c_str());
   return EXIT_SUCCESS;
-}
-
-std::string readContents(int in_num, char* filepath) {
-  std::fstream strm;
-
-  strm.open(filepath, std::ios_base::in);
-  if (!strm.is_open()) {
-    fprintf(stderr, "Cannot find %s: No such file or directory\n", filepath);
-  }
-
-  std::stringstream contents_string;
-
-  contents_string << strm.rdbuf();
-  std::string contents = contents_string.str();
-  return contents;
 }
