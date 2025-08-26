@@ -1,9 +1,10 @@
 #include <cstdio>
+#include <iostream>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <optional>
+#include <vector>
 
 enum class tokenType{
   _return,
@@ -13,10 +14,61 @@ enum class tokenType{
   close_paren
 };
 
-struct token{
+struct Token{
   tokenType type;
-  std::optional<std::string> value;
+  std::string value;
 };
+
+std::vector<Token> tokenize(std::string& str) {
+  std::vector<Token> tokens = {};
+
+  std::string buffer;
+
+  for (int i = 0; i < str.size(); i++) {
+    char c = str.at(i);
+    if (std::isalpha(c)) {
+      buffer.push_back(c);
+      i++;
+      while (std::isalnum(str.at(i))) {
+        buffer.push_back(str.at(i));
+        i++;
+      }
+      i--;
+
+      if (buffer == "return") {
+        tokens.push_back({.type = tokenType::_return});
+        buffer.clear();
+        continue;
+      }
+    }
+
+    else if (std::isdigit(c)) {
+      buffer.push_back(c);
+      i++;
+      while (std::isdigit(c)) {
+        buffer.push_back(c);
+        i++;
+      }
+      i--;
+      tokens.push_back({.type = tokenType::int_lit, .value = buffer});
+      buffer.clear();
+    }
+    else if (c == ';') {
+      tokens.push_back({.type = tokenType::semicolon});
+    }
+
+    else if (std::isspace(c)) {
+      continue;
+    }
+
+    else {
+      fprintf(stderr, "No token found!\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+  return tokens;
+}
+
 
 std::string readContents(int in_num, char* filepath) {
   std::fstream strm;
@@ -24,13 +76,12 @@ std::string readContents(int in_num, char* filepath) {
   strm.open(filepath, std::ios_base::in);
   if (!strm.is_open()) {
     fprintf(stderr, "Cannot find %s: No such file or directory\n", filepath);
- }
+  }
 
   std::stringstream contents_string;
 
   contents_string << strm.rdbuf();
-  std::string contents = contents_string.str();
-  return contents;
+  return contents_string.str();
 }
 
 
@@ -45,7 +96,7 @@ int main(int argc, char* argv[]) {
 
   std::string contents = readContents(argc, argv[1]);
 
-  printf("Read file: %s.\n", argv[1]);
-  printf("Contents: \n\n%s\n", contents.c_str());
+  printf("Read file: %s\n", argv[1]);
+  tokenize(contents);
   return EXIT_SUCCESS;
 }

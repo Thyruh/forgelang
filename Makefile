@@ -1,4 +1,17 @@
-main:
+
+test:
 	mkdir -p build
 	rm -f build/forge
-	clang++ src/* -Iinclude -o build/forge
+	g++ src/* -o build/forge
+
+
+
+run:
+	mkdir -p build
+	rm -f build/forge
+	g++ src/* -o build/forge
+	./build/forge tests/main.fgl
+
+
+
+
