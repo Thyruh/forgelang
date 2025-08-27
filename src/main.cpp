@@ -40,13 +40,18 @@ std::vector<Token> tokenize(std::string& str) {
         buffer.clear();
         continue;
       }
+      else {
+        buffer.clear();
+        fprintf(stderr, "No return token found!");
+        exit(EXIT_FAILURE);
+      }
     }
 
     else if (std::isdigit(c)) {
       buffer.push_back(c);
       i++;
-      while (std::isdigit(c)) {
-        buffer.push_back(c);
+      while (std::isdigit(str.at(i))) {
+        buffer.push_back(str.at(i));
         i++;
       }
       i--;
@@ -84,6 +89,25 @@ std::string readContents(int in_num, char* filepath) {
   return contents_string.str();
 }
 
+std::string tokensToASM(std::vector<Token>& tokens) {
+  std::stringstream output;
+  output << "global _start\n_start:\n";
+  for (int i = 0; i < tokens.size(); i++)
+    {
+      const Token& token = tokens.at(i);
+      if (token.type == tokenType::_return) {
+          if (i + 1 < tokens.size() && tokens.at(i + 1).type == tokenType::int_lit) {
+              if (i + 2 < tokens.size() && tokens.at(i + 2).type == tokenType::semicolon) {
+                  output << "    mov rax, 60\n";
+                  output << "    mov rdi, " << tokens.at(i + 1).value << "\n";
+                  output << "    syscall";
+                }
+            }
+        }
+    }
+  return output.str();
+}
+
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -97,6 +121,17 @@ int main(int argc, char* argv[]) {
   std::string contents = readContents(argc, argv[1]);
 
   printf("Read file: %s\n", argv[1]);
-  tokenize(contents);
+  std::vector<Token> tokens = tokenize(contents);
+  std::string output = tokensToASM(tokens);
+
+  {
+    std::fstream file("out.asm", std::ios::out);
+    file << tokensToASM(tokens);
+  }
+
+  system("nasm -felf64 out.asm");
+  system("ld -o out out.o");
+  //  system("rm out.o out.asm");
+
   return EXIT_SUCCESS;
 }
