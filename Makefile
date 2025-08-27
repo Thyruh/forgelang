@@ -1,10 +1,7 @@
-
 test:
 	mkdir -p build
 	rm -f build/forge
-	g++ src/* -o build/forge
-
-
+	g++ src/main.cpp -o build/forge
 
 run:
 	mkdir -p build

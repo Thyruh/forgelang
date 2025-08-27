@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-enum class tokenType{
+enum class tokenType {
   _return,
   semicolon,
   int_lit,
@@ -16,11 +16,12 @@ enum class tokenType{
 
 struct Token{
   tokenType type;
-  std::string value;
+  std::string value; // int lit
 };
 
+
 std::vector<Token> tokenize(std::string& str) {
-  std::vector<Token> tokens = {};
+  std::vector<Token> tokens;
 
   std::string buffer;
 
@@ -47,7 +48,7 @@ std::vector<Token> tokenize(std::string& str) {
       }
     }
 
-    else if (std::isdigit(c)) {
+    else if (std::isdigit(c)) { // int lit
       buffer.push_back(c);
       i++;
       while (std::isdigit(str.at(i))) {
@@ -83,17 +84,16 @@ std::string readContents(int in_num, char* filepath) {
     fprintf(stderr, "Cannot find %s: No such file or directory\n", filepath);
   }
 
-  std::stringstream contents_string;
+  std::stringstream contents;
 
-  contents_string << strm.rdbuf();
-  return contents_string.str();
+  contents << strm.rdbuf();
+  return contents.str();
 }
 
 std::string tokensToASM(std::vector<Token>& tokens) {
   std::stringstream output;
   output << "global _start\n_start:\n";
-  for (int i = 0; i < tokens.size(); i++)
-    {
+  for (int i = 0; i < tokens.size(); i++) {
       const Token& token = tokens.at(i);
       if (token.type == tokenType::_return) {
           if (i + 1 < tokens.size() && tokens.at(i + 1).type == tokenType::int_lit) {
@@ -108,12 +108,11 @@ std::string tokensToASM(std::vector<Token>& tokens) {
   return output.str();
 }
 
-
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     printf("\n");
     fprintf(stderr, "Error: One argument required: a file to compile.\n");
-    printf("       Correct syntax: ./forge <name>.forge\n");
+    printf("       Correct syntax: ./forge <name>.fgl\n");
     return EXIT_FAILURE;
   }
 
@@ -122,7 +121,6 @@ int main(int argc, char* argv[]) {
 
   printf("Read file: %s\n", argv[1]);
   std::vector<Token> tokens = tokenize(contents);
-  std::string output = tokensToASM(tokens);
 
   {
     std::fstream file("out.asm", std::ios::out);
