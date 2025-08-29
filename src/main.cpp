@@ -7,9 +7,10 @@
 #include <vector>
 
 enum class tokenType {
-  _return,
+  exit,
   semicolon,
   int_lit,
+  plus,
   open_paren,
   close_paren
 };
@@ -20,7 +21,7 @@ struct Token{
 };
 
 
-std::vector<Token> tokenize(std::string& str) {
+std::vector<Token> tokenize(const std::string& str) {
   std::vector<Token> tokens;
 
   std::string buffer;
@@ -36,14 +37,14 @@ std::vector<Token> tokenize(std::string& str) {
       }
       i--;
 
-      if (buffer == "return") {
-        tokens.push_back({.type = tokenType::_return});
+      if (buffer == "exit") {
+        tokens.push_back({.type = tokenType::exit});
         buffer.clear();
         continue;
       }
       else {
         buffer.clear();
-        fprintf(stderr, "No return token found!");
+        fprintf(stderr, "No exit token found!\n");
         exit(EXIT_FAILURE);
       }
     }
@@ -63,12 +64,16 @@ std::vector<Token> tokenize(std::string& str) {
       tokens.push_back({.type = tokenType::semicolon});
     }
 
+    else if (c == '+') {
+      tokens.push_back({.type = tokenType::plus});
+    }
+
     else if (std::isspace(c)) {
       continue;
     }
 
     else {
-      fprintf(stderr, "No token found!\n");
+      fprintf(stderr, "No %c token found!\n", c);
       exit(EXIT_FAILURE);
     }
   }
@@ -76,9 +81,10 @@ std::vector<Token> tokenize(std::string& str) {
 }
 
 
+
+
 std::string readContents(int in_num, char* filepath) {
   std::fstream strm;
-
   strm.open(filepath, std::ios_base::in);
   if (!strm.is_open()) {
     fprintf(stderr, "Cannot find %s: No such file or directory\n", filepath);
@@ -89,13 +95,12 @@ std::string readContents(int in_num, char* filepath) {
   contents << strm.rdbuf();
   return contents.str();
 }
-
 std::string tokensToASM(std::vector<Token>& tokens) {
   std::stringstream output;
   output << "global _start\n_start:\n";
   for (int i = 0; i < tokens.size(); i++) {
       const Token& token = tokens.at(i);
-      if (token.type == tokenType::_return) {
+      if (token.type == tokenType::exit) {
           if (i + 1 < tokens.size() && tokens.at(i + 1).type == tokenType::int_lit) {
               if (i + 2 < tokens.size() && tokens.at(i + 2).type == tokenType::semicolon) {
                   output << "    mov rax, 60\n";
