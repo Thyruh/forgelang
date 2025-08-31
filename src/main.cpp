@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <iostream>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
@@ -19,7 +18,6 @@ struct Token{
   tokenType type;
   std::string value; // int lit
 };
-
 
 std::vector<Token> tokenize(const std::string& str) {
   std::vector<Token> tokens;
@@ -81,9 +79,7 @@ std::vector<Token> tokenize(const std::string& str) {
 }
 
 
-
-
-std::string readContents(int in_num, char* filepath) {
+std::string readContents(int& in_num, char*& filepath) {
   std::fstream strm;
   strm.open(filepath, std::ios_base::in);
   if (!strm.is_open()) {
@@ -95,7 +91,9 @@ std::string readContents(int in_num, char* filepath) {
   contents << strm.rdbuf();
   return contents.str();
 }
-std::string tokensToASM(std::vector<Token>& tokens) {
+
+
+std::string tokensToASM(const std::vector<Token>& tokens) {
   std::stringstream output;
   output << "global _start\n_start:\n";
   for (int i = 0; i < tokens.size(); i++) {
@@ -105,7 +103,7 @@ std::string tokensToASM(std::vector<Token>& tokens) {
               if (i + 2 < tokens.size() && tokens.at(i + 2).type == tokenType::semicolon) {
                   output << "    mov rax, 60\n";
                   output << "    mov rdi, " << tokens.at(i + 1).value << "\n";
-                  output << "    syscall";
+                  output << "    syscall\n";
                 }
             }
         }
@@ -122,10 +120,10 @@ int main(int argc, char* argv[]) {
   }
 
 
-  std::string contents = readContents(argc, argv[1]);
+  const std::string& contents = readContents(argc, argv[1]);
 
   printf("Read file: %s\n", argv[1]);
-  std::vector<Token> tokens = tokenize(contents);
+  const std::vector<Token>& tokens = tokenize(contents);
 
   {
     std::fstream file("out.asm", std::ios::out);
