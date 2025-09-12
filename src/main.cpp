@@ -1,22 +1,25 @@
 #include <cstdio>
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
 
+// self implement vector: dynamic arr as template
+
 enum class tokenType {
-  exit,
+  _exit,
   semicolon,
   int_lit,
   plus,
-  open_paren,
-  close_paren
+  close_paren,
+  open_paren
 };
 
 struct Token{
   tokenType type;
-  std::string value; // int lit
+  std::string value;
 };
 
 std::vector<Token> tokenize(const std::string& str) {
@@ -36,7 +39,7 @@ std::vector<Token> tokenize(const std::string& str) {
       i--;
 
       if (buffer == "exit") {
-        tokens.push_back({.type = tokenType::exit});
+        tokens.push_back({.type = tokenType::_exit});
         buffer.clear();
         continue;
       }
@@ -47,7 +50,7 @@ std::vector<Token> tokenize(const std::string& str) {
       }
     }
 
-    else if (std::isdigit(c)) { // int lit
+    else if (std::isdigit(c)) {
       buffer.push_back(c);
       i++;
       while (std::isdigit(str.at(i))) {
@@ -74,12 +77,13 @@ std::vector<Token> tokenize(const std::string& str) {
       fprintf(stderr, "No %c token found!\n", c);
       exit(EXIT_FAILURE);
     }
+
   }
   return tokens;
 }
 
 
-std::string readContents(int& in_num, char*& filepath) {
+std::string readContents(const char* filepath) {
   std::fstream strm;
   strm.open(filepath, std::ios_base::in);
   if (!strm.is_open()) {
@@ -92,22 +96,21 @@ std::string readContents(int& in_num, char*& filepath) {
   return contents.str();
 }
 
-
 std::string tokensToASM(const std::vector<Token>& tokens) {
   std::stringstream output;
   output << "global _start\n_start:\n";
   for (int i = 0; i < tokens.size(); i++) {
-      const Token& token = tokens.at(i);
-      if (token.type == tokenType::exit) {
-          if (i + 1 < tokens.size() && tokens.at(i + 1).type == tokenType::int_lit) {
-              if (i + 2 < tokens.size() && tokens.at(i + 2).type == tokenType::semicolon) {
-                  output << "    mov rax, 60\n";
-                  output << "    mov rdi, " << tokens.at(i + 1).value << "\n";
-                  output << "    syscall\n";
-                }
-            }
+    const Token& token = tokens.at(i);
+    if (token.type == tokenType::_exit) {
+      if (i + 1 < tokens.size() && tokens.at(i + 1).type == tokenType::int_lit) {
+        if (i + 2 < tokens.size() && tokens.at(i + 2).type == tokenType::semicolon) {
+          output << "    mov rax, 60\n";
+          output << "    mov rdi, " << tokens.at(i + 1).value << "\n";
+          output << "    syscall\n";
         }
+      }
     }
+  }
   return output.str();
 }
 
@@ -119,10 +122,10 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-
-  const std::string& contents = readContents(argc, argv[1]);
+  std::string contents = readContents(argv[1]);
 
   printf("Read file: %s\n", argv[1]);
+
   const std::vector<Token>& tokens = tokenize(contents);
 
   {
