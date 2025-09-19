@@ -1,10 +1,10 @@
 test:
 	mkdir -p build
-	rm -f build/forge
-	g++ src/main.cpp -o build/forge
+	rm -f examples/forge
+	g++ src/main.cpp -o examples/forge
 
 run:
 	mkdir -p build
 	rm -f build/forge
 	g++ src/* -o build/forge
-	./build/forge tests/main.fgl
+	./build/forge examples/main.fgl

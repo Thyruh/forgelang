@@ -5,8 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-// self implement vector: dynamic arr as template
+#include "../include/tokenizer.hpp"
 
 enum class tokenType {
   _exit,
@@ -69,9 +68,7 @@ std::vector<Token> tokenize(const std::string& str) {
       tokens.push_back({.type = tokenType::plus});
     }
 
-    else if (std::isspace(c)) {
-      continue;
-    }
+    else if (std::isspace(c)) continue;
 
     else {
       fprintf(stderr, "No %c token found!\n", c);
@@ -129,12 +126,12 @@ int main(int argc, char* argv[]) {
   const std::vector<Token>& tokens = tokenize(contents);
 
   {
-    std::fstream file("out.asm", std::ios::out);
+    std::fstream file("examples/build/out.asm", std::ios::out);
     file << tokensToASM(tokens);
   }
 
-  system("nasm -felf64 out.asm");
-  system("ld -o out out.o");
+  system("nasm -felf64 examples/build/out.asm");
+  system("ld -o examples/build/out examples/build/out.o");
   //  system("rm out.o out.asm");
 
   return EXIT_SUCCESS;
