@@ -1,7 +1,7 @@
 #include <cstdio>
-#include <cstdio>
-#include <cstdlib>
+#include <iostream>
 #include <fstream>
+#include <cstdlib>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -48,6 +48,9 @@ std::vector<Token> tokenize(const std::string& str) {
         exit(EXIT_FAILURE);
       }
     }
+
+
+    // After a long day i finally found way to store the data from the thing. Success.
 
     else if (std::isdigit(c)) {
       buffer.push_back(c);
