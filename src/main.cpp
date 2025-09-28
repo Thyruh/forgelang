@@ -50,8 +50,6 @@ std::vector<Token> tokenize(const std::string& str) {
     }
 
 
-    // After a long day i finally found way to store the data from the thing. Success.
-
     else if (std::isdigit(c)) {
       buffer.push_back(c);
       i++;
