@@ -5,7 +5,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "../include/tokenizer.hpp"
 
 enum class tokenType {
   _exit,
