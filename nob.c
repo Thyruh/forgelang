@@ -4,6 +4,7 @@
 
 #define SRC "src/main.c", \
    "src/tokenizer.c", \
+   "src/generator.c", \
    "src/parser.c" 
 #define TARGET "forgelang"
 

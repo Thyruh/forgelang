@@ -29,6 +29,12 @@ typedef enum {
 } TokenType;
 
 typedef struct {
+   char* items;
+   size_t size;
+   size_t capacity;
+} Buf;
+
+typedef struct {
    TokenType type;
    const char* value;
 } Token;
@@ -50,11 +56,11 @@ Tokenizer Tokenizer_create(char** src, size_t length);
 Tokens    tokenize(Tokenizer* t);
 
 #define DA_INIT_CAP 256
-#define da_clear(da)  /* What the fuck */\
-   do { \
-      (da)->size = 0;\
-      memset((da)->items, 0, (da)->size * sizeof(*(da)->items));\
-   } while(0)
+#define da_clear(da) \
+    do { \
+        memset((da)->items, 0, (da)->size * sizeof(*(da)->items)); \
+        (da)->size = 0; \
+    } while(0)
    
 
 #define da_append(da, item)                                                          \

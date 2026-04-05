@@ -1,3 +1,6 @@
+#pragma once
+#ifndef PARSER
+#define PARSER
 #include "./tokenizer.h"
 
 typedef struct {
@@ -56,3 +59,4 @@ typedef struct {
 
 Parser Parser_create(Tokens* tokens);
 NodeProg parse_prog(Parser* parser);
+#endif // PARSER

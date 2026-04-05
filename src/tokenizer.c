@@ -1,11 +1,5 @@
 #include "./tokenizer.h"
 
-typedef struct {
-   char* items;
-   size_t size;
-   size_t capacity;
-} Buf;
-
 Tokenizer Tokenizer_create(char** src, size_t length) {
    assert(length && "[ERROR]: empty source file");
    Tokenizer t = { 0 };
@@ -34,7 +28,7 @@ Tokens tokenize(Tokenizer* t) {
          consume(t);
          continue;
       }
-      if isalpha(ch) {
+      if (isalpha(ch)) {
          da_append(&buf, consume(t));
          while (isalnum(peek(t))) {
             da_append(&buf, consume(t));
@@ -56,7 +50,7 @@ Tokens tokenize(Tokenizer* t) {
             da_clear(&buf);
          }
          else {
-            da_append(&tokens, ((Token){ident, buf.items}));
+            da_append(&tokens, ((Token){ident, strdup(buf.items)}));
             printf("ident \"%s\" added successfully\n", buf.items);
             da_clear(&buf);
          }
@@ -67,7 +61,7 @@ Tokens tokenize(Tokenizer* t) {
          da_append(&buf, consume(t));
          while (isdigit(peek(t)))
             da_append(&buf, consume(t));
-         da_append(&tokens, ((Token){int_lit, buf.items}));
+         da_append(&tokens, ((Token){int_lit, strdup(buf.items)}));
          printf("int literal \"%s\" added successfully\n", buf.items);
          da_clear(&buf);
          continue;
@@ -93,6 +87,11 @@ Tokens tokenize(Tokenizer* t) {
             // consume(t);
             printf("token '%c' successfully added\n", consume(t));
             da_append(&tokens, ((Token){slash, ""}));
+            break;
+         case '=':
+            // consume(t);
+            printf("token '%c' successfully added\n", consume(t));
+            da_append(&tokens, ((Token){equals, ""}));
             break;
          case '(':
             // consume(t);

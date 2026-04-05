@@ -4,6 +4,7 @@
 #include "../include/inttypes.h"
 #include "./tokenizer.h"
 #include "./parser.h"
+#include "./generator.h"
 
 typedef int Errno;
 
@@ -20,9 +21,20 @@ int main(int argc, char** argv) {
    Tokenizer tokenizer = Tokenizer_create(&src, size); // perhaps arena allocate that baby
    Tokens tokens = tokenize(&tokenizer);
 
+
    Parser parser = Parser_create(&tokens);
    NodeProg prog = parse_prog(&parser);
 
+   FILE* out = fopen("out.c", "w+");
+
+   Generator gen = Generator_create(&prog, out);
+   gen_prog(&gen);
+
+   // for (size_t i = 0; i < tokens.size; i++) {
+   //    printf("[%zu] type=%d value=%s\n", i, tokens.items[i].type, tokens.items[i].value);
+   // }
+
+   fclose(out);
    fclose(f);
    return 0;
 }
