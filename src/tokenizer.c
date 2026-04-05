@@ -15,7 +15,7 @@ Tokenizer Tokenizer_create(char** src, size_t length) {
 }
 
 static inline char peek(Tokenizer* t) {
-   if (t->length < t->index) return '\0';
+   if (t->index >= t->length) return '\0';
    return t->src[t->index];
 }
 

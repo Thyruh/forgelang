@@ -53,7 +53,7 @@ Tokens    tokenize(Tokenizer* t);
 #define da_clear(da)  /* What the fuck */\
    do { \
       (da)->size = 0;\
-      memset(((da))->items, 0, (da)->items[(da)->size]);\
+      memset((da)->items, 0, (da)->size * sizeof(*(da)->items));\
    } while(0)
    
 
