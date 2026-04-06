@@ -7,17 +7,25 @@ static inline void gen_expr(Generator* gen, NodeExpr* expr) {
          fprintf(gen->out, "%s", expr->value.int_lit.intLit.value);
          break;
       case EXPR_IDENT:
-         fprintf(gen->out, "%s", expr->value.ident.ident.value);
+         for (size_t i = 0; i < gen->table.size; i++) {
+            if (strcmp(gen->table.items[i].ident, expr->value.ident.ident.value) == 0) {
+               fprintf(gen->out, "%s", expr->value.ident.ident.value);
+               return;
+            }
+         }
+         printf("[generator]: Unknown identifier: %s\n", expr->value.ident.ident.value);
+         (void)system("rm out.c");
+         exit(1);
          break;
    }
 }
 
 static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
     switch (stmt->type) {
-        case STMT_LET: // TODO check for redefinition
+        case STMT_LET:
             for (size_t i = 0; i < gen->table.size; i++) {
                if (strcmp(gen->table.items[i].ident, stmt->stmt_let.ident.value) == 0) {
-                  printf("Redefinition of %s\n", stmt->stmt_let.ident.value);
+                  printf("[generator]: Redefinition of %s\n", stmt->stmt_let.ident.value);
                   (void)system("rm out.c");
                   exit(1);
                }

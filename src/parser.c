@@ -8,7 +8,7 @@ static inline Token peek(Parser* p, size_t offset) {
 
 static inline Token consume(Parser* p) {
    if (p->index >= p->tokens->size) {
-      printf("[ERROR]: Unexpected end of tokens");
+      printf("[parser]: [ERROR]: Unexpected end of tokens");
       exit(1);
    }
    return p->tokens->items[p->index++];
@@ -47,7 +47,7 @@ static inline NodeStmt parse_stmt(Parser* p) {
       stmt.stmt_let.expr = parse_expr(p);
       stmt.type = STMT_LET; 
       if (peek(p, 0).type != semi) {
-         printf("Missing a semicolon\n");
+         printf("[parser]: Missing a semicolon\n");
          exit(1);
       }
       consume(p);
@@ -62,19 +62,19 @@ static inline NodeStmt parse_stmt(Parser* p) {
          consume(p);
       }
       else {
-         printf("Missing a paren\n");
+         printf("[parser]: Missing a paren\n");
          exit(1);
       }
       if (peek(p, 0).type == semi) {
          consume(p);
       }
       else {
-         printf("Missing a semicolon\n");
+         printf("[parser]: Missing a semicolon\n");
          exit(1);
       }
    }
    else {
-      printf("Invalid expression\n");
+      printf("[parser]: Invalid expression\n");
       exit(1);
    }
    return stmt;
@@ -86,6 +86,6 @@ NodeProg parse_prog(Parser* p) {
       NodeStmt stmt = parse_stmt(p);
       da_append(&prog, stmt);
    }
-   printf(ANSI_COLOR_GREEN"Compilation finished successfully%s\n", ANSI_COLOR_RESET);
+   printf(ANSI_COLOR_GREEN"[lexer]: Compilation finished successfully%s\n", ANSI_COLOR_RESET);
    return prog;
 }

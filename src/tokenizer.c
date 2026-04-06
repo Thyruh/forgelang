@@ -2,10 +2,10 @@
 #include <ctype.h>
 
 #ifdef DEBUG
-#define DEBUG_KW(buf) printf("keyword %s added successfully\n", (buf))
-#define DEBUG_TOKEN(ch) printf("token '%c' successfully added\n", (ch))
-#define DEBUG_IDENT(buf) printf("ident \"%s\" added successfully\n", (buf))
-#define DEBUG_INT(buf) printf("int literal \"%s\" added successfully\n", (buf))
+#define DEBUG_KW(buf) printf("[tokenizer]: keyword %s added successfully\n", (buf))
+#define DEBUG_TOKEN(ch) printf("[tokenizer]: token '%c' successfully added\n", (ch))
+#define DEBUG_IDENT(buf) printf("[tokenizer]: ident \"%s\" added successfully\n", (buf))
+#define DEBUG_INT(buf) printf("[tokenizer]: int literal \"%s\" added successfully\n", (buf))
 #else
 #define DEBUG_KW(buf)
 #define DEBUG_IDENT(buf)
@@ -127,5 +127,7 @@ Tokens tokenize(Tokenizer* t) {
             // exit(1);
       }
    }
+
+   free(buf.items);
    return tokens;
 } // tokenize()
