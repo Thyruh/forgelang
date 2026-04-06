@@ -3,7 +3,6 @@
 #define TOKENIZER
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <assert.h>
 #include <string.h>
 
@@ -70,7 +69,6 @@ Tokens    tokenize(Tokenizer* t);
          (da)->items = realloc((da)->items, (da)->capacity*sizeof(*(da)->items)); \
          assert((da)->items != NULL && "Buy more RAM lol");                       \
       }                                                                            \
-      \
       (da)->items[(da)->size++] = (item);                                         \
    } while (0)
 

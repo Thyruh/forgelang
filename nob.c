@@ -12,7 +12,8 @@ int main(int argc, char** argv) {
    GO_REBUILD_URSELF(argc, argv);
    Cmd cmd= { 0 };
 
-   cmd_append(&cmd, "cc", "-o", TARGET, "-Wall", "-Wextra", "-pedantic", SRC);
+   cmd_append(&cmd, "cc", "-o", TARGET, "-Wall", "-Wextra", "-pedantic",
+         "-O3", "-g", SRC);
    if (!cmd_run_sync(cmd)) return 1;
    return 0;
 }

@@ -11,6 +11,7 @@ typedef int Errno;
 int main(int argc, char** argv) {
    if (argc < 1) return 1;
 
+
    FILE* f = fopen(argv[argc-1], "r");
    fseek(f, 0, SEEK_END);
    u64 size = ftell(f);
@@ -20,7 +21,6 @@ int main(int argc, char** argv) {
 
    Tokenizer tokenizer = Tokenizer_create(&src, size); // perhaps arena allocate that baby
    Tokens tokens = tokenize(&tokenizer);
-
 
    Parser parser = Parser_create(&tokens);
    NodeProg prog = parse_prog(&parser);

@@ -1,9 +1,10 @@
+// Generated automatically by the forgelang compiler
 #include <stdlib.h>
 
 int main(void) {
-    int x = 100;
-    int x = 100;
-    int x = 100;
-    return x;
+    int x = 10;
+    int y = 20;
+    int z = 30;
+    return y;
     return 0;
 }

@@ -1,4 +1,19 @@
 #include "./tokenizer.h"
+#include <ctype.h>
+
+#define DEBUG
+
+#ifdef DEBUG
+#define DEBUG_KW(buf) printf("keyword %s added successfully\n", (buf))
+#define DEBUG_TOKEN(ch) printf("token '%c' successfully added\n", (ch))
+#define DEBUG_IDENT(buf) printf("ident \"%s\" added successfully\n", (buf))
+#define DEBUG_INT(buf) printf("int literal \"%s\" added successfully\n", (buf))
+#else
+#define DEBUG_KW(buf)
+#define DEBUG_IDENT(buf)
+#define DEBUG_TOKEN(ch) (ch)
+#define DEBUG_INT(buf)
+#endif
 
 Tokenizer Tokenizer_create(char** src, size_t length) {
    assert(length && "[ERROR]: empty source file");
@@ -21,7 +36,7 @@ Tokens tokenize(Tokenizer* t) {
    Tokens tokens = { 0 };
    Buf buf = { 0 };
 
-   while (t->index < t->length) {
+   while (t->index < t->length) { // TODO count the lines for debug info
       char ch = peek(t);
       if (ch == 0) return tokens;
       if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r') {
@@ -36,22 +51,22 @@ Tokens tokenize(Tokenizer* t) {
 
          if (!strcmp(buf.items, "print")) {
             da_append(&tokens, ((Token){print, ""}));
-            printf("keyword %s added successfully\n", buf.items);
+            DEBUG_KW(buf.items);
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "let")) {
             da_append(&tokens, ((Token){let, ""}));
-            printf("keyword %s added successfully\n", buf.items);
+            DEBUG_KW(buf.items);
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "exit")) {
             da_append(&tokens, ((Token){exit_, ""}));
-            printf("keyword %s added successfully\n", buf.items);
+            DEBUG_KW(buf.items);
             da_clear(&buf);
          }
          else {
             da_append(&tokens, ((Token){ident, strdup(buf.items)}));
-            printf("ident \"%s\" added successfully\n", buf.items);
+            DEBUG_IDENT(buf.items);
             da_clear(&buf);
          }
          continue;
@@ -62,60 +77,50 @@ Tokens tokenize(Tokenizer* t) {
          while (isdigit(peek(t)))
             da_append(&buf, consume(t));
          da_append(&tokens, ((Token){int_lit, strdup(buf.items)}));
-         printf("int literal \"%s\" added successfully\n", buf.items);
+         DEBUG_INT(buf.items);
          da_clear(&buf);
          continue;
       }
 
       switch (ch) {
          case '+':
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){plus, ""}));
             break;
          case '-':
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){minus, ""}));
             break;
          case '*':
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){times, ""}));
             break;
          case '/':
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){slash, ""}));
             break;
          case '=':
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){equals, ""}));
             break;
          case '(':
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){open_paren, ""}));
             break;
          case ')':
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){close_paren, ""}));
             break;
          case 39: // single quote
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){s_quote, ""}));
             break;
          case '"': // double quote
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){d_quote, ""}));
             break;
          case ';':
-            // consume(t);
-            printf("token '%c' successfully added\n", consume(t));
+            DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){semi, ""}));
             break;
          default:

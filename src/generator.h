@@ -4,8 +4,7 @@
 #include "./parser.h"
 
 typedef struct {
-   char* ident;
-   char* value;
+   const char* ident;
 } Symbol;
 
 typedef struct {
