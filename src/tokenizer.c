@@ -1,8 +1,6 @@
 #include "./tokenizer.h"
 #include <ctype.h>
 
-#define DEBUG
-
 #ifdef DEBUG
 #define DEBUG_KW(buf) printf("keyword %s added successfully\n", (buf))
 #define DEBUG_TOKEN(ch) printf("token '%c' successfully added\n", (ch))
@@ -48,7 +46,7 @@ Tokens tokenize(Tokenizer* t) {
          while (isalnum(peek(t))) {
             da_append(&buf, consume(t));
          }
-
+         da_append(&buf, '\0');
          if (!strcmp(buf.items, "print")) {
             da_append(&tokens, ((Token){print, ""}));
             DEBUG_KW(buf.items);
@@ -76,6 +74,7 @@ Tokens tokenize(Tokenizer* t) {
          da_append(&buf, consume(t));
          while (isdigit(peek(t)))
             da_append(&buf, consume(t));
+         da_append(&buf, '\0');
          da_append(&tokens, ((Token){int_lit, strdup(buf.items)}));
          DEBUG_INT(buf.items);
          da_clear(&buf);

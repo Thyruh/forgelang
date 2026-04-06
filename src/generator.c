@@ -18,7 +18,7 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
             for (size_t i = 0; i < gen->table.size; i++) {
                if (strcmp(gen->table.items[i].ident, stmt->stmt_let.ident.value) == 0) {
                   printf("Redefinition of %s\n", stmt->stmt_let.ident.value);
-                  system("rm out.c");
+                  (void)system("rm out.c");
                   exit(1);
                }
             }

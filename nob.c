@@ -31,7 +31,7 @@ static bool compile_object(const char *c_path, const char *o_path, bool debug)
     cmd_append(&cmd, "cc");
     if (debug) {
         cmd_append(&cmd,
-            "-Wall", "-Wextra", "-std=c11",
+            "-Wall", "-Wextra", "-std=c23",
             "-ggdb3", "-O0",
             "-fno-omit-frame-pointer",
             "-fstack-protector-strong",
@@ -39,11 +39,12 @@ static bool compile_object(const char *c_path, const char *o_path, bool debug)
             "-fsanitize=address,undefined",
             "-fno-sanitize-recover=all",
             "-Wshadow", "-Wconversion", "-Wsign-conversion",
-            "-Wnull-dereference", "-Wformat=2"
+            "-Wnull-dereference", "-Wformat=2",
+            "-DDEBUG"
         );
     } else {
         cmd_append(&cmd,
-            "-Wall", "-Wextra", "-std=c11", "-pedantic", "-O3",
+            "-Wall", "-Wextra", "-std=c23", "-pedantic", "-O3",
             "-D_FORTIFY_SOURCE=2",
             "-fstack-protector-strong",
             "-fstack-clash-protection",

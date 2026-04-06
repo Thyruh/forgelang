@@ -77,7 +77,6 @@ static inline NodeStmt parse_stmt(Parser* p) {
       printf("Invalid expression\n");
       exit(1);
    }
-
    return stmt;
 }
 
