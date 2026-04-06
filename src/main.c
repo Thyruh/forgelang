@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
    u64 size = ftell(f);
    rewind(f);
    char* src = malloc(size);
-   fread(src, 1, size, f);
+   (void)fread(src, 1, size, f);
 
    Tokenizer tokenizer = Tokenizer_create(&src, size); // perhaps arena allocate that baby
    Tokens tokens = tokenize(&tokenizer);

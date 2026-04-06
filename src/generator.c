@@ -1,4 +1,5 @@
 #include "./generator.h"
+#include <string.h>
 
 static inline void gen_expr(Generator* gen, NodeExpr* expr) {
    switch (expr->type) {
