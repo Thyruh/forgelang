@@ -6,11 +6,10 @@
 #include "./parser.h"
 #include "./generator.h"
 
-typedef int Errno;
-
 int main(int argc, char** argv) {
-   if (argc < 1) return 1;
+   if (argc == 1) return 1; // TODO the default dialog explaining how to use the compiler
 
+   (void)system("rm out.c");
 
    FILE* f = fopen(argv[argc-1], "r");
    fseek(f, 0, SEEK_END);
@@ -30,12 +29,8 @@ int main(int argc, char** argv) {
    Generator gen = Generator_create(&prog, out);
    gen_prog(&gen);
 
-   // for (size_t i = 0; i < tokens.size; i++) {
-   //    printf("[%zu] type=%d value=%s\n", i, tokens.items[i].type, tokens.items[i].value);
-   // }
-
-
-   free(src);
+   free(src); // TODO carry everything onto that arena?
+   free(parser.arena);
    for (size_t i = 0; i < tokens.size; i++) {
       if (strcmp(tokens.items[i].value, "") == 0) continue;
       free((void*)tokens.items[i].value);

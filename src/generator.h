@@ -15,7 +15,7 @@ typedef struct {
 
 typedef struct {
     SymbolTable table;
-    NodeProg* prog;
+    NodeProg* stmts;
     FILE* out;
 } Generator;
 

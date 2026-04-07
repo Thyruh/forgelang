@@ -21,7 +21,8 @@ Tokenizer Tokenizer_create(char** src, size_t length) {
    return t;
 }
 
-static inline char peek(Tokenizer* t) {
+__attribute__((warn_unused_result))
+   static inline char peek(Tokenizer* t) {
    if (t->index >= t->length) return '\0';
    return t->src[t->index];
 }
@@ -127,7 +128,6 @@ Tokens tokenize(Tokenizer* t) {
             // exit(1);
       }
    }
-
    free(buf.items);
    return tokens;
 } // tokenize()

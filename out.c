@@ -5,6 +5,6 @@ int main(void) {
     int x = 10;
     int y = 20;
     int z = 30;
-    return z;
-    return 0;
+    x = 100;
+    return x;
 }
