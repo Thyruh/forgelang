@@ -11,6 +11,7 @@ typedef enum {
    int_lit,
    string_lit,
    semi,
+   colon,
    d_quote,
    s_quote,
    plus,
@@ -24,6 +25,21 @@ typedef enum {
    return_,
    let,
    equals,
+
+   i8_, char_, // __INT8_TYPE__
+   i16_, // __INT16_TYPE__
+   i32_, // __INT32_TYPE__
+   i64_, // __INT64_TYPE__
+   u8_, // __UINT8_TYPE__
+   u16_, // __UINT16_TYPE__
+   u32_, // __UINT32_TYPE__
+   u64_, // __UINT64_TYPE__
+   f32_,
+   f64_,
+   uptr,
+
+   string,
+
    TERMINATE
 } TokenType;
 
@@ -34,8 +50,14 @@ typedef struct {
 } Buf;
 
 typedef struct {
+   size_t line;
+   size_t line_pos;
+} TokenPos;
+
+typedef struct {
    TokenType type;
    const char* value;
+   TokenPos pos;
 } Token;
 
 typedef struct {
@@ -49,6 +71,7 @@ typedef struct {
    size_t length;
 
    size_t index;
+   TokenPos pos;
 } Tokenizer;
 
 Tokenizer Tokenizer_create(char** src, size_t length);

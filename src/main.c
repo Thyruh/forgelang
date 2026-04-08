@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
    free(src); // TODO carry everything onto that arena?
    free(parser.arena);
    for (size_t i = 0; i < tokens.size; i++) {
-      if (strcmp(tokens.items[i].value, "") == 0) continue;
+      if (!strcmp(tokens.items[i].value, "")) continue;
       free((void*)tokens.items[i].value);
    }
    free(tokens.items);

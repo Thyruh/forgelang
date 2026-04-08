@@ -1,6 +1,11 @@
 #include "./generator.h"
 #include <string.h>
 
+#define EXIT(s, a)\
+         printf(s, a);\
+         (void)system("rm out.c");\
+         exit(1);
+
 static inline void gen_expr(Generator* gen, NodeExpr* expr) {
    switch (expr->type) {
       case EXPR_INT_LIT:
@@ -8,13 +13,12 @@ static inline void gen_expr(Generator* gen, NodeExpr* expr) {
          break;
       case EXPR_IDENT:
          for (size_t i = 0; i < gen->table.size; i++) {
-            if (strcmp(gen->table.items[i].ident, expr->value.ident->ident.value) == 0) {
+            if (!strcmp(gen->table.items[i].ident, expr->value.ident->ident.value)) {
                fprintf(gen->out, "%s", expr->value.ident->ident.value);
                return;
             }
          }
-         printf("[generator]: Unknown identifier: `%s`\n", expr->value.ident->ident.value);
-         exit(1);
+         EXIT("[generator]: Unknown identifier: `%s`. Invalid expression.\n", expr->value.ident->ident.value);
          break;
    }
 }
@@ -24,10 +28,8 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
       case STMT_LET:
          {
             for (size_t i = 0; i < gen->table.size; i++) {
-               if (strcmp(gen->table.items[i].ident, stmt->stmt_let->ident.value) == 0) {
-                  printf("[generator]: Redefinition of `%s`\n", stmt->stmt_let->ident.value);
-                  (void)system("rm out.c"); // TODO abstract the clean up and exit into a separate function/macro
-                  exit(1);
+               if (!strcmp(gen->table.items[i].ident, stmt->stmt_let->ident.value)) {
+                  EXIT("[generator]: Redefinition of `%s`. Definition failed.\n", stmt->stmt_let->ident.value);
                }
             }
             Symbol sym = { stmt->stmt_let->ident.value };
@@ -47,7 +49,7 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
       case STMT_ASSIGN:
          {
             for (size_t i = 0; i < gen->table.size; i++) {
-               if (strcmp(gen->table.items[i].ident, stmt->stmt_assign->ident.value) == 0) {
+               if (!strcmp(gen->table.items[i].ident, stmt->stmt_assign->ident.value)) {
                   Symbol sym = { stmt->stmt_assign->ident.value };
                   fprintf(gen->out, "    %s = ", sym.ident);
                   gen_expr(gen, stmt->stmt_assign->expr);
@@ -55,9 +57,7 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
                   return;
                }
             }
-            printf("[generator]: Undefined identifier `%s`\n", stmt->stmt_let->ident.value);
-            (void)system("rm out.c");
-            exit(1);
+            EXIT("[generator]: Undefined identifier `%s`. Assignment failed.\n", stmt->stmt_assign->ident.value);
          }
          break;
    }
