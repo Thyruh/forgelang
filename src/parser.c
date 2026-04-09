@@ -2,10 +2,10 @@
 #include "../include/inttypes.h"
 
 __attribute__((warn_unused_result))
-static inline Token peek(Parser* p, size_t offset) {
-   if (p->index+offset >= p->tokens->size ) return (Token){TERMINATE, {0}, ""}; // I never actually use the TERMINATE token
-   return p->tokens->items[p->index+offset];
-}
+   static inline Token peek(Parser* p, size_t offset) {
+      if (p->index+offset >= p->tokens->size ) return (Token){.type = TERMINATE, .pos = {0}, .value = ""}; // I never actually use the TERMINATE token
+      return p->tokens->items[p->index+offset];
+   }
 
 static inline Token consume(Parser* p) {
    if (p->index >= p->tokens->size) {
@@ -23,33 +23,75 @@ Parser Parser_create(Tokens* tokens) {
    return p;
 }
 
-__attribute__((warn_unused_result))
-static inline NodeExpr* parse_expr(Parser* p) { // TODO pratt parsing
-   NodeExpr* expr = arena_push(p->arena, NodeExpr);
+static inline NodeTerm* parse_term(Parser* p) {
+   NodeTerm* term = arena_push(p->arena, NodeTerm);
    if (peek(p, 0).type == int_lit) {
-      NodeExprIntLit* ptr = arena_push(p->arena, NodeExprIntLit);
-      ptr->int_lit = consume(p);
-      expr->value.int_lit = ptr;
-      expr->type = EXPR_INT_LIT;
+      NodeTermIntLit* term_int_lit = arena_push(p->arena, NodeTermIntLit);
+      term_int_lit->int_lit = consume(p);
+      term->value.int_lit = term_int_lit;
+      term->type = TERM_INT_LIT;
    }
    else if (peek(p, 0).type == ident) {
-      NodeExprIdent* ptr = arena_push(p->arena, NodeExprIdent);
-      ptr->ident = consume(p);
-      expr->value.ident = ptr;
-      expr->type = EXPR_IDENT;
+      NodeTermIdent* term_ident = arena_push(p->arena, NodeTermIdent);
+      term_ident->ident = consume(p);
+      term->value.ident = term_ident;
+      term->type = TERM_IDENT;
    }
-   else {
-      printf("Unimplemented. You might be onto something!\n");
-      exit(1);
-   }
-   return expr;
+   return term;
 }
+
+// TODO Implement an actual pratt parser. This works for now because it is dependent on gcc
+// More complicated custom syntax expressions *WILL* fail.
+__attribute__((warn_unused_result))
+   static inline NodeExpr* parse_expr(Parser* p) {
+      NodeExpr* expr = arena_push(p->arena, NodeExpr);
+      NodeTerm* term = parse_term(p);
+      if (!term) {
+         printf("Missing the second expression.\n");
+         exit(1);
+      }
+      if (peek(p, 0).type == plus) {
+         NodeBinExpr* bin_expr = arena_push(p->arena, NodeBinExpr);
+         NodeBinExprAdd* bin_expr_add = arena_push(p->arena, NodeBinExprAdd);
+         NodeExpr* lhs_expr = arena_push(p->arena, NodeExpr);
+         bin_expr->type = EXPR_ADD;
+         lhs_expr->value.term = term;
+         lhs_expr->type = EXPR_TERM;
+         bin_expr_add->lhs = lhs_expr;
+         consume(p);
+         NodeExpr* rhs = parse_expr(p);
+         bin_expr_add->rhs = rhs;
+         bin_expr->var.add = bin_expr_add;
+         expr->value.bin_expr = bin_expr;
+         expr->type = EXPR_BIN_EXPR;
+         return expr;
+      }
+      else if (peek(p, 0).type == star) {
+         NodeBinExpr* bin_expr = arena_push(p->arena, NodeBinExpr);
+         NodeBinExprMulti* bin_expr_multi = arena_push(p->arena, NodeBinExprMulti);
+         NodeExpr* lhs_expr = arena_push(p->arena, NodeExpr);
+         bin_expr->type = EXPR_MULTI;
+         lhs_expr->value.term = term;
+         lhs_expr->type = EXPR_TERM;
+         bin_expr_multi->lhs = lhs_expr;
+         consume(p);
+         NodeExpr* rhs = parse_expr(p);
+         bin_expr_multi->rhs = rhs;
+         bin_expr->var.multi = bin_expr_multi;
+         expr->value.bin_expr = bin_expr;
+         expr->type = EXPR_BIN_EXPR;
+         return expr;
+      }
+      expr->type = EXPR_TERM;
+      expr->value.term = term;
+      return expr;
+   }
 
 static inline NodeStmt* parse_stmt(Parser* p) {
    NodeStmt* stmt = arena_push(p->arena, NodeStmt);
-   if (peek(p, 0).type == let
-    && peek(p, 1).type == ident
-    && peek(p, 2).type == equals) {
+   if (peek(p, 0).type == let // TODO: Type system
+         && peek(p, 1).type == ident
+         && peek(p, 2).type == equals) {
       NodeStmtLet* ptr = arena_push(p->arena, NodeStmtLet);
       consume(p);
       ptr->ident = consume(p);
@@ -94,6 +136,29 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       consume(p);
       stmt->stmt_assign->expr = parse_expr(p);
       stmt->type = STMT_ASSIGN;
+      if (peek(p, 0).type == semi) {
+         consume(p);
+      }
+      else {
+         printf("[parser]: Missing a semicolon.\n");
+         exit(1);
+      }
+   }
+   else if (peek(p, 0).type == print
+         && peek(p, 1).type == open_paren) {
+      NodeStmtPrint* ptr = arena_push(p->arena, NodeStmtPrint);
+      consume(p);
+      consume(p);
+      ptr->expr = parse_expr(p);
+      stmt->stmt_print = ptr;
+      stmt->type = STMT_PRINT;
+      if (peek(p, 0).type == close_paren) {
+         consume(p);
+      }
+      else {
+         printf("[parser]: Missing a closing paren.\n");
+         exit(1);
+      }
       if (peek(p, 0).type == semi) {
          consume(p);
       }

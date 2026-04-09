@@ -16,7 +16,7 @@ typedef enum {
    s_quote,
    plus,
    minus,
-   times,
+   star,
    slash,
    print,
    ident,

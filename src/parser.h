@@ -10,46 +10,58 @@ typedef struct NodeExpr_ NodeExpr;
 
 typedef struct {
    Token int_lit;
-} NodeExprIntLit;
+} NodeTermIntLit;
 
 typedef struct {
    Token ident;
-} NodeExprIdent; 
+} NodeTermIdent; 
 
 typedef enum {
-   EXPR_INT_LIT,
-   EXPR_IDENT,
+   EXPR_TERM,
+   EXPR_BIN_EXPR,
 } NodeExprType;
 
 typedef struct {
    NodeExpr* lhs;
    NodeExpr* rhs;
-} BinExprAdd;
+} NodeBinExprAdd;
 
 typedef struct {
    NodeExpr* lhs;
    NodeExpr* rhs;
-} BinExprMulti;
+} NodeBinExprMulti;
 
 typedef enum {
    EXPR_ADD,
-   EXPR_MULTI
+   EXPR_MULTI,
 } BinExprType;
 
 typedef struct {
    BinExprType type;
    union {
-      BinExprAdd* add;
-      BinExprMulti* multi;
+      NodeBinExprAdd* add;
+      NodeBinExprMulti* multi;
    } var;
-} BinExpr;
+} NodeBinExpr;
+
+typedef enum {
+   TERM_INT_LIT,
+   TERM_IDENT,
+} NodeTermType;
+
+typedef struct {
+   NodeTermType type;
+   union {
+      NodeTermIdent* ident;
+      NodeTermIntLit* int_lit;
+   } value;
+} NodeTerm;
 
 struct NodeExpr_ {
    NodeExprType type;
    union {
-      NodeExprIntLit* int_lit;
-      NodeExprIdent*  ident;
-      BinExpr* bin_expr;
+      NodeTerm*    term;
+      NodeBinExpr* bin_expr;
    } value;
 };
 
@@ -58,20 +70,25 @@ typedef struct {
 } NodeStmtExit; 
 
 typedef struct {
+   NodeExpr* expr;
+} NodeStmtPrint;
+
+typedef struct {
    Token ident;
    NodeExpr* expr;
 } NodeStmtLet;
-
-typedef enum {
-   STMT_EXIT,
-   STMT_LET,
-   STMT_ASSIGN
-} NodeStmtType;
 
 typedef struct {
    Token ident;
    NodeExpr* expr;
 } NodeStmtAssign;
+
+typedef enum {
+   STMT_EXIT,
+   STMT_LET,
+   STMT_PRINT,
+   STMT_ASSIGN
+} NodeStmtType;
 
 typedef struct {
    NodeStmtType type;
@@ -79,6 +96,7 @@ typedef struct {
       NodeStmtAssign* stmt_assign;
       NodeStmtExit* stmt_exit;
       NodeStmtLet*  stmt_let;
+      NodeStmtPrint*  stmt_print;
    };
 } NodeStmt;
 
@@ -96,4 +114,5 @@ typedef struct {
 
 Parser Parser_create(Tokens* tokens);
 NodeProg parse_prog(Parser* parser);
+__attribute__((warn_unused_result)) static inline NodeBinExpr* parse_bin_expr(Parser* p);
 #endif // PARSER

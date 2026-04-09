@@ -57,7 +57,7 @@ Tokens tokenize(Tokenizer* t) {
             da_append(&buf, consume(t));
          }
          da_append(&buf, '\0');
-         if (!strcmp(buf.items, "print")) {
+         if (!strcmp(buf.items, "print")) { // duping the value to calculate its length in the DEBUG_ macros
             da_append(&tokens, ((Token){.type = print, .value = strdup(buf.items), .pos = t->pos}));
             DEBUG_KW(buf.items);
             da_clear(&buf);
@@ -102,7 +102,7 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '*':
             DEBUG_TOKEN(consume(t));
-            da_append(&tokens, ((Token){.type = times, .value = "", .pos = t->pos}));
+            da_append(&tokens, ((Token){.type = star, .value = "", .pos = t->pos}));
             break;
          case '/':
             DEBUG_TOKEN(consume(t));

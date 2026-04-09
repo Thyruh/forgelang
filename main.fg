@@ -1,4 +1,3 @@
-let x = 10;
-let y = 20;
-let z = 30;
-exit(z);
+let c = 65;
+print(c);
+exit(0);
