@@ -9,7 +9,7 @@
 #else
 #define DEBUG_KW(buf)
 #define DEBUG_IDENT(buf)
-#define DEBUG_TOKEN(ch) (ch)
+#define DEBUG_TOKEN(ch)
 #define DEBUG_INT(buf)
 #endif
 
@@ -24,7 +24,7 @@ Tokenizer Tokenizer_create(char** src, size_t length) {
 }
 
 __attribute__((warn_unused_result))
-   static inline char peek(Tokenizer* t) {
+static inline char peek(Tokenizer* t) {
    if (t->index >= t->length) return '\0';
    return t->src[t->index];
 }

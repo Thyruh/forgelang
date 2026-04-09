@@ -2,7 +2,7 @@
 #define NOB_STRIP_PREFIX
 #include "./nob.h"
 
-#define TARGET  "./forgelang"
+#define TARGET  "./forge"
 #define OBJ_DIR "./obj"
 
 static const char *src[] = {

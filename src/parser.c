@@ -1,9 +1,9 @@
 #include "./parser.h"
 #include "../include/inttypes.h"
 
-__attribute__((warn_unused_result)) 
-   static inline Token peek(Parser* p, size_t offset) {
-   if (p->index+offset >= p->tokens->size ) return (Token){TERMINATE, "", {0}}; // I never actually use the TERMINATE token
+__attribute__((warn_unused_result))
+static inline Token peek(Parser* p, size_t offset) {
+   if (p->index+offset >= p->tokens->size ) return (Token){TERMINATE, {0}, ""}; // I never actually use the TERMINATE token
    return p->tokens->items[p->index+offset];
 }
 
@@ -23,6 +23,7 @@ Parser Parser_create(Tokens* tokens) {
    return p;
 }
 
+__attribute__((warn_unused_result))
 static inline NodeExpr* parse_expr(Parser* p) { // TODO pratt parsing
    NodeExpr* expr = arena_push(p->arena, NodeExpr);
    if (peek(p, 0).type == int_lit) {
