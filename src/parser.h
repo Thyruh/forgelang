@@ -13,6 +13,10 @@ typedef struct {
 } NodeTermIntLit;
 
 typedef struct {
+   Token string_lit;
+} NodeTermStringLit;
+
+typedef struct {
    Token ident;
 } NodeTermIdent; 
 
@@ -46,6 +50,7 @@ typedef struct {
 
 typedef enum {
    TERM_INT_LIT,
+   TERM_STRING_LIT,
    TERM_IDENT,
 } NodeTermType;
 
@@ -54,6 +59,7 @@ typedef struct {
    union {
       NodeTermIdent* ident;
       NodeTermIntLit* int_lit;
+      NodeTermStringLit* string_lit;
    } value;
 } NodeTerm;
 

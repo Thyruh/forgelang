@@ -13,6 +13,11 @@ static inline void gen_term(Generator* gen, NodeTerm* term) {
             fprintf(gen->out, "%s", term->value.int_lit->int_lit.value);
          }
          break; 
+      case TERM_STRING_LIT: 
+         {
+            fprintf(gen->out, "\"%s\"", term->value.string_lit->string_lit.value);
+         }
+         break; 
       case TERM_IDENT: 
          {
             for (size_t i = 0; i < gen->table.size; i++) {
@@ -82,7 +87,7 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
          break;
       case STMT_PRINT:
          {
-            fprintf(gen->out, "    printf(\"%%d\\n\", ");
+            fprintf(gen->out, "    printf(\"%%s\\n\", ");
             gen_expr(gen, stmt->stmt_exit->expr);
             fprintf(gen->out, ");\n");
          }

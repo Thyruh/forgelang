@@ -31,6 +31,12 @@ static inline NodeTerm* parse_term(Parser* p) {
       term->value.int_lit = term_int_lit;
       term->type = TERM_INT_LIT;
    }
+   else if (peek(p, 0).type == string_lit) {
+      NodeTermStringLit* term_string = arena_push(p->arena, NodeTermStringLit);
+      term_string->string_lit = consume(p);
+      term->value.string_lit = term_string;
+      term->type = TERM_STRING_LIT;
+   }
    else if (peek(p, 0).type == ident) {
       NodeTermIdent* term_ident = arena_push(p->arena, NodeTermIdent);
       term_ident->ident = consume(p);

@@ -18,6 +18,7 @@ typedef enum {
    minus,
    star,
    slash,
+   println,
    print,
    ident,
    open_paren,

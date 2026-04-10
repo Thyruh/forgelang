@@ -29,6 +29,7 @@ int main(int argc, char** argv) {
    Generator gen = Generator_create(&prog, out);
    gen_prog(&gen);
 
+
    free(src); // TODO carry everything onto that arena?
    free(parser.arena);
    for (size_t i = 0; i < tokens.size; i++) {
@@ -40,5 +41,6 @@ int main(int argc, char** argv) {
    free(gen.table.items);
    fclose(out);
    fclose(f);
+   (void)system("cc -oout -Wall -Wextra -pedantic out.c");
    return 0;
 }

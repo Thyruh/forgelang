@@ -1,16 +1,20 @@
 #include "./tokenizer.h"
 #include <ctype.h>
 
+#define DEBUG
+
 #ifdef DEBUG // the DEBUG macro is automatically defined with `./nob debug` through `-D`
 #define DEBUG_KW(buf) printf("[tokenizer]: keyword %s added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value))
 #define DEBUG_TOKEN(ch) printf("[tokenizer]: token '%c' successfully added at %zu:%zu\n", (ch), t->pos.line, t->pos.line_pos)
 #define DEBUG_IDENT(buf) printf("[tokenizer]: ident \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
 #define DEBUG_INT(buf) printf("[tokenizer]: int literal \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
+#define DEBUG_STRING(buf) printf("[tokenizer]: string literal \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
 #else
 #define DEBUG_KW(buf)
 #define DEBUG_IDENT(buf)
 #define DEBUG_TOKEN(ch)
 #define DEBUG_INT(buf)
+#define DEBUG_STRING(buf)
 #endif
 
 Tokenizer Tokenizer_create(char** src, size_t length) {
@@ -57,7 +61,7 @@ Tokens tokenize(Tokenizer* t) {
             da_append(&buf, consume(t));
          }
          da_append(&buf, '\0');
-         if (!strcmp(buf.items, "print")) { // duping the value to calculate its length in the DEBUG_ macros
+         if (!strcmp(buf.items, "println")) { // duping the value to calculate its length in the DEBUG_ macros
             da_append(&tokens, ((Token){.type = print, .value = strdup(buf.items), .pos = t->pos}));
             DEBUG_KW(buf.items);
             da_clear(&buf);
@@ -87,6 +91,20 @@ Tokens tokenize(Tokenizer* t) {
          da_append(&buf, '\0');
          da_append(&tokens, ((Token){.type = int_lit, .value = strdup(buf.items), .pos = t->pos}));
          DEBUG_INT(buf.items);
+         da_clear(&buf);
+         continue;
+      }
+
+      if (ch == '"') {
+         consume(t);
+         da_append(&buf, consume(t));
+         while (peek(t) != '"') {
+            da_append(&buf, consume(t));
+         }
+         consume(t);
+         da_append(&buf, '\0');
+         da_append(&tokens, ((Token){.type = string_lit, .value = strdup(buf.items), .pos = t->pos}));
+         DEBUG_STRING(buf.items);
          da_clear(&buf);
          continue;
       }
@@ -124,10 +142,10 @@ Tokens tokenize(Tokenizer* t) {
             DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){.type = s_quote, .value = "", .pos = t->pos}));
             break;
-         case '"':
-            DEBUG_TOKEN(consume(t));
-            da_append(&tokens, ((Token){.type = d_quote, .value = "", .pos = t->pos}));
-            break;
+         // case '"':
+         //    DEBUG_TOKEN(consume(t));
+         //    da_append(&tokens, ((Token){.type = d_quote, .value = "", .pos = t->pos}));
+         //    break;
          case ';':
             DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){.type = semi, .value = "", .pos = t->pos}));
@@ -138,6 +156,5 @@ Tokens tokenize(Tokenizer* t) {
       }
    }
    free(buf.items);
-   da_clear(&buf);
    return tokens;
 } // tokenize()
