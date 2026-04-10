@@ -1,18 +1,16 @@
 #include "./tokenizer.h"
 #include <ctype.h>
 
-#define DEBUG
-
 #ifdef DEBUG // the DEBUG macro is automatically defined with `./nob debug` through `-D`
-#define DEBUG_KW(buf) printf("[tokenizer]: keyword %s added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value))
 #define DEBUG_TOKEN(ch) printf("[tokenizer]: token '%c' successfully added at %zu:%zu\n", (ch), t->pos.line, t->pos.line_pos)
+#define DEBUG_KW(buf) printf("[tokenizer]: keyword %s added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value))
 #define DEBUG_IDENT(buf) printf("[tokenizer]: ident \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
 #define DEBUG_INT(buf) printf("[tokenizer]: int literal \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
 #define DEBUG_STRING(buf) printf("[tokenizer]: string literal \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
 #else
+#define DEBUG_TOKEN(ch) ch // this need to be here for the token switch
 #define DEBUG_KW(buf)
 #define DEBUG_IDENT(buf)
-#define DEBUG_TOKEN(ch)
 #define DEBUG_INT(buf)
 #define DEBUG_STRING(buf)
 #endif
