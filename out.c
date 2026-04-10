@@ -3,6 +3,8 @@
 
 int main(void) {
     int c = 65;
-    printf("%s\n", "Hello, World!");
-    return 0;
+    c = 90;
+    puts("Hello, World!");
+    puts("This is the forgelang compiler speaking.");
+    return c*2;
 }

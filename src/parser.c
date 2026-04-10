@@ -15,6 +15,28 @@ static inline Token consume(Parser* p) {
    return p->tokens->items[p->index++];
 }
 
+
+static inline Token try_consume(Parser* p, TokenType type, char* err_msg) {
+   Token token = p->tokens->items[p->index];
+
+   if (type == semi) {
+      if (peek(p, 0).type == semi){
+         return consume(p);
+      }
+      else {
+         printf(ANSI_COLOR_RED"[parser]: %s at line %zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line-1);
+         exit(1);
+      }
+   }
+   if (peek(p, 0).type == type) {
+      return consume(p);
+   }
+   else {
+      printf(ANSI_COLOR_RED"[parser]: %s at line %zu:%zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line, token.pos.line_pos-strlen(token.value));
+      exit(1);
+   }
+}
+
 Parser Parser_create(Tokens* tokens) {
    Parser p = { 0 };
    mem_arena* arena = arena_create(MiB(4));
@@ -105,11 +127,7 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       consume(p);
       stmt->stmt_let->expr = parse_expr(p);
       stmt->type = STMT_LET;
-      if (peek(p, 0).type != semi) {
-         printf("[parser]: Missing a semicolon.\n");
-         exit(1);
-      }
-      consume(p);
+      try_consume(p, semi, "Missing a semicolon");
    }
    else if (peek(p, 0).type == exit_
          && peek(p, 1).type == open_paren) {
@@ -119,20 +137,8 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       ptr->expr = parse_expr(p);
       stmt->stmt_exit = ptr;
       stmt->type = STMT_EXIT;
-      if (peek(p, 0).type == close_paren) {
-         consume(p);
-      }
-      else {
-         printf("[parser]: Missing a paren.\n");
-         exit(1);
-      }
-      if (peek(p, 0).type == semi) {
-         consume(p);
-      }
-      else {
-         printf("[parser]: Missing a semicolon.\n");
-         exit(1);
-      }
+      try_consume(p, close_paren, "Missing a paren");
+      try_consume(p, semi, "Missing a semicolon");
    }
    else if (peek(p, 0).type == ident
          && peek(p, 1).type == equals) {
@@ -142,13 +148,7 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       consume(p);
       stmt->stmt_assign->expr = parse_expr(p);
       stmt->type = STMT_ASSIGN;
-      if (peek(p, 0).type == semi) {
-         consume(p);
-      }
-      else {
-         printf("[parser]: Missing a semicolon.\n");
-         exit(1);
-      }
+      try_consume(p, semi, "Missing a semicolon");
    }
    else if (peek(p, 0).type == print
          && peek(p, 1).type == open_paren) {
@@ -157,21 +157,9 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       consume(p);
       ptr->expr = parse_expr(p);
       stmt->stmt_print = ptr;
-      stmt->type = STMT_PRINT;
-      if (peek(p, 0).type == close_paren) {
-         consume(p);
-      }
-      else {
-         printf("[parser]: Missing a closing paren.\n");
-         exit(1);
-      }
-      if (peek(p, 0).type == semi) {
-         consume(p);
-      }
-      else {
-         printf("[parser]: Missing a semicolon.\n");
-         exit(1);
-      }
+      stmt->type = STMT_PRINTLN;
+      try_consume(p, close_paren, "Missing a paren");
+      try_consume(p, semi, "Missing a semicolon");
    }
    else {
       printf("[parser]: Invalid statement.\n");
@@ -186,6 +174,6 @@ NodeProg parse_prog(Parser* p) {
       NodeStmt* stmt = parse_stmt(p);
       da_append(&prog, *stmt);
    }
-   printf(ANSI_COLOR_GREEN"[lexer]: Compilation finished successfully.%s\n", ANSI_COLOR_RESET);
+   puts(ANSI_COLOR_GREEN"[lexer]: Compilation finished successfully."ANSI_COLOR_RESET);
    return prog;
 }

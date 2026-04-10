@@ -85,9 +85,9 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
             fprintf(gen->out, ";\n");
          }
          break;
-      case STMT_PRINT:
+      case STMT_PRINTLN:
          {
-            fprintf(gen->out, "    printf(\"%%s\\n\", ");
+            fprintf(gen->out, "    puts(");
             gen_expr(gen, stmt->stmt_exit->expr);
             fprintf(gen->out, ");\n");
          }

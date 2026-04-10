@@ -92,7 +92,7 @@ typedef struct {
 typedef enum {
    STMT_EXIT,
    STMT_LET,
-   STMT_PRINT,
+   STMT_PRINTLN,
    STMT_ASSIGN
 } NodeStmtType;
 
