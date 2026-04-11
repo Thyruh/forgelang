@@ -65,6 +65,10 @@ static inline NodeTerm* parse_term(Parser* p) {
       term->value.ident = term_ident;
       term->type = TERM_IDENT;
    }
+   else {
+      printf("Incomplete expression.\n");
+      exit(1);
+   }
    return term;
 }
 
@@ -74,10 +78,6 @@ __attribute__((warn_unused_result))
    static inline NodeExpr* parse_expr(Parser* p) {
       NodeExpr* expr = arena_push(p->arena, NodeExpr);
       NodeTerm* term = parse_term(p);
-      if (!term) {
-         printf("Missing the second expression.\n");
-         exit(1);
-      }
       if (peek(p, 0).type == plus) {
          NodeBinExpr* bin_expr = arena_push(p->arena, NodeBinExpr);
          NodeBinExprAdd* bin_expr_add = arena_push(p->arena, NodeBinExprAdd);
@@ -120,25 +120,25 @@ static inline NodeStmt* parse_stmt(Parser* p) {
    if (peek(p, 0).type == let // TODO: Type system
          && peek(p, 1).type == ident
          && peek(p, 2).type == equals) {
-      NodeStmtLet* ptr = arena_push(p->arena, NodeStmtLet);
+      NodeStmtLet* stmt_let = arena_push(p->arena, NodeStmtLet);
       consume(p);
-      ptr->ident = consume(p);
-      stmt->stmt_let = ptr;
+      stmt_let->ident = consume(p);
+      stmt->stmt_let = stmt_let;
       consume(p);
       stmt->stmt_let->expr = parse_expr(p);
       stmt->type = STMT_LET;
-      try_consume(p, semi, "Missing a semicolon");
+      try_consume(p, semi, "Expected a ';'");
    }
    else if (peek(p, 0).type == exit_
          && peek(p, 1).type == open_paren) {
-      NodeStmtExit* ptr = arena_push(p->arena, NodeStmtExit);
+      NodeStmtExit* stmt_exit = arena_push(p->arena, NodeStmtExit);
       consume(p);
       consume(p);
-      ptr->expr = parse_expr(p);
-      stmt->stmt_exit = ptr;
+      stmt_exit->expr = parse_expr(p);
+      stmt->stmt_exit = stmt_exit;
       stmt->type = STMT_EXIT;
-      try_consume(p, close_paren, "Missing a paren");
-      try_consume(p, semi, "Missing a semicolon");
+      try_consume(p, close_paren, "Expected a ')'");
+      try_consume(p, semi       , "Expected a ';'");
    }
    else if (peek(p, 0).type == ident
          && peek(p, 1).type == equals) {
@@ -148,7 +148,7 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       consume(p);
       stmt->stmt_assign->expr = parse_expr(p);
       stmt->type = STMT_ASSIGN;
-      try_consume(p, semi, "Missing a semicolon");
+      try_consume(p, semi, "Expected a ';'");
    }
    else if (peek(p, 0).type == print
          && peek(p, 1).type == open_paren) {
@@ -158,11 +158,11 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       ptr->expr = parse_expr(p);
       stmt->stmt_print = ptr;
       stmt->type = STMT_PRINTLN;
-      try_consume(p, close_paren, "Missing a paren");
-      try_consume(p, semi, "Missing a semicolon");
+      try_consume(p, close_paren, "Expected a ')'");
+      try_consume(p, semi       , "Expected a ';'");
    }
    else {
-      printf("[parser]: Invalid statement.\n");
+      printf("[parser]: Invalid statement at line %zu\n", p->tokens->items[p->index].pos.line);
       exit(1);
    }
    return stmt;

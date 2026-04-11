@@ -9,7 +9,7 @@
 int main(int argc, char** argv) {
    if (argc == 1) return 1; // TODO the default dialog explaining how to use the compiler
 
-   (void)system("rm out.c");
+   (void)system("rm out.c out");
 
    FILE* f = fopen(argv[argc-1], "r");
    fseek(f, 0, SEEK_END);

@@ -2,4 +2,4 @@ let c = 65;
 c = 90;
 println("Hello, World!");
 println("This is the forgelang compiler speaking.");
-exit(c);
+exit(c*2);
