@@ -62,12 +62,17 @@ Tokens tokenize(Tokenizer* t) {
          }
          da_append(&buf, '\0');
          if (!strcmp(buf.items, "println")) { // duping the value to calculate its length in the DEBUG_ macros
-            da_append(&tokens, ((Token){.type = print, .value = strdup(buf.items), .pos = t->pos}));
+            da_append(&tokens, ((Token){.type = println, .value = strdup(buf.items), .pos = t->pos}));
             DEBUG_KW(buf.items);
             da_clear(&buf);
          }
-         else if (!strcmp(buf.items, "let")) {
-            da_append(&tokens, ((Token){.type = let, .value = strdup(buf.items), .pos = t->pos}));
+         else if (!strcmp(buf.items, "const")) {
+            da_append(&tokens, ((Token){.type = const_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_KW(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "mut")) {
+            da_append(&tokens, ((Token){.type = mut, .value = strdup(buf.items), .pos = t->pos}));
             DEBUG_KW(buf.items);
             da_clear(&buf);
          }
@@ -199,7 +204,7 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '/':
             DEBUG_TOKEN(consume(t));
-            da_append(&tokens, ((Token){.type = slash, .value = "", .pos = t->pos}));
+            da_append(&tokens, ((Token){.type = fslash, .value = "", .pos = t->pos}));
             break;
          case '=':
             DEBUG_TOKEN(consume(t));
@@ -227,7 +232,7 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case ':':
             DEBUG_TOKEN(consume(t));
-            da_append(&tokens, ((Token){.type = semi, .value = "", .pos = t->pos}));
+            da_append(&tokens, ((Token){.type = colon, .value = "", .pos = t->pos}));
             break;
          default:
             printf("Error: invalid character: '%c'.\n", consume(t));

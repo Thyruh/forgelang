@@ -37,6 +37,59 @@ static inline Token try_consume(Parser* p, TokenType type, char* err_msg) {
    }
 }
 
+static inline TokenType get_type(Token token) {
+   switch (token.type) {
+      case i8_:
+         return i8_;
+         break;
+      case i16_:
+         return i16_;
+         break;
+      case i32_:
+         return i32_;
+         break;
+      case i64_:
+         return i64_;
+         break;
+      case u8_:
+         return u8_;
+         break;
+      case u16_:
+         return u16_;
+         break;
+      case u32_:
+         return u32_;
+         break;
+      case u64_:
+         return u64_;
+         break;
+      case f32_:
+         return f32_;
+         break;
+      case f64_:
+         return f64_;
+         break;
+      case bool_:
+         return bool_;
+         break;
+      case ptr:
+         return ptr;
+         break;
+      case uptr:
+         return uptr;
+         break;
+      case string:
+         return string;
+         break;
+      case ustring:
+         return ustring;
+         break;
+      default:
+         printf("Unknown type %s at %zu:%zu\n", token.value, token.pos.line, token.pos.line_pos-strlen(token.value)+1);
+         exit(1);
+   }
+}
+
 Parser Parser_create(Tokens* tokens) {
    Parser p = { 0 };
    mem_arena* arena = arena_create(MiB(4));
@@ -75,60 +128,78 @@ static inline NodeTerm* parse_term(Parser* p) {
 static inline int get_prec(TokenType t) {
    switch (t) {
       case plus: case minus: return 1;
-      case star: case slash: return 2;
+      case star: case fslash: return 2;
       default: return -1;
    }
 }
 
 // TODO Implement an actual pratt parser. This works for now because it is dependent on gcc
 // More complicated custom syntax expressions *WILL* fail.
-__attribute__((warn_unused_result))
-   static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
-      NodeExpr* lhs = arena_push(p->arena, NodeExpr);
-      NodeTerm* term = parse_term(p);
-      lhs->type = EXPR_TERM;
-      lhs->value.term = term;
+static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
+   NodeExpr* lhs = arena_push(p->arena, NodeExpr);
+   NodeTerm* term = parse_term(p);
+   lhs->type = EXPR_TERM;
+   lhs->value.term = term;
 
-      while (1) {
-         TokenType op = peek(p, 0).type;
-         int prec = get_prec(op);
-         if (prec < min_prec) break;
+   while (1) {
+      TokenType op = peek(p, 0).type;
+      int prec = get_prec(op);
+      if (prec < min_prec) break;
 
-         consume(p);
-         NodeExpr* rhs = parse_expr(p, prec+1);
-         NodeBinExpr* bin_expr = arena_push(p->arena, NodeBinExpr);
-         NodeExpr* new_lhs = arena_push(p->arena, NodeExpr);
-         if (op == plus) {
-            NodeBinExprAdd* bin_expr_add = arena_push(p->arena, NodeBinExprAdd);
-            bin_expr_add->lhs = lhs;
-            bin_expr_add->rhs = rhs;
-            bin_expr->type = EXPR_ADD;
-            bin_expr->var.add = bin_expr_add;
-         }
-         else if (op == star) {
-            NodeBinExprMulti* bin_expr_multi = arena_push(p->arena, NodeBinExprMulti);
-            bin_expr_multi->lhs = lhs;
-            bin_expr_multi->rhs = rhs;
-            bin_expr->type = EXPR_MULTI;
-            bin_expr->var.multi = bin_expr_multi;
-         }
-         new_lhs->type = EXPR_BIN_EXPR;
-         new_lhs->value.bin_expr = bin_expr;
-         lhs = new_lhs;
+      consume(p);
+      NodeExpr* rhs = parse_expr(p, prec+1);
+      NodeBinExpr* bin_expr = arena_push(p->arena, NodeBinExpr);
+      NodeExpr* new_lhs = arena_push(p->arena, NodeExpr);
+      if (op == plus) {
+         NodeBinExprAdd* bin_expr_add = arena_push(p->arena, NodeBinExprAdd);
+         bin_expr_add->lhs = lhs;
+         bin_expr_add->rhs = rhs;
+         bin_expr->type = EXPR_ADD;
+         bin_expr->var.add = bin_expr_add;
       }
-      return lhs;
+      else if (op == star) {
+         NodeBinExprMulti* bin_expr_multi = arena_push(p->arena, NodeBinExprMulti);
+         bin_expr_multi->lhs = lhs;
+         bin_expr_multi->rhs = rhs;
+         bin_expr->type = EXPR_MULTI;
+         bin_expr->var.multi = bin_expr_multi;
+      }
+      new_lhs->type = EXPR_BIN_EXPR;
+      new_lhs->value.bin_expr = bin_expr;
+      lhs = new_lhs;
    }
+   return lhs;
+}
 
+// TODO: Type system
 static inline NodeStmt* parse_stmt(Parser* p) {
    NodeStmt* stmt = arena_push(p->arena, NodeStmt);
-   if (peek(p, 0).type == let // TODO: Type system
+   if (peek(p, 0).type == mut
          && peek(p, 1).type == ident
-         && peek(p, 2).type == equals) {
+         && peek(p, 2).type == colon) {
       NodeStmtLet* stmt_let = arena_push(p->arena, NodeStmtLet);
       consume(p);
       stmt_let->ident = consume(p);
-      stmt->stmt_let = stmt_let;
       consume(p);
+      stmt_let->type = get_type(consume(p));
+      try_consume(p, equals, "Expected a '='");
+      stmt_let->mut = true;
+      stmt->stmt_let = stmt_let;
+      stmt->stmt_let->expr = parse_expr(p, 0);
+      stmt->type = STMT_LET;
+      try_consume(p, semi, "Expected a ';'");
+   }
+   else if (peek(p, 0).type == const_
+         && peek(p, 1).type == ident
+         && peek(p, 2).type == colon) {
+      NodeStmtLet* stmt_let = arena_push(p->arena, NodeStmtLet);
+      consume(p);
+      stmt_let->ident = consume(p);
+      consume(p);
+      stmt_let->type = get_type(consume(p));
+      try_consume(p, equals, "Expected a '='");
+      stmt_let->mut = false;
+      stmt->stmt_let = stmt_let;
       stmt->stmt_let->expr = parse_expr(p, 0);
       stmt->type = STMT_LET;
       try_consume(p, semi, "Expected a ';'");
@@ -154,7 +225,7 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       stmt->type = STMT_ASSIGN;
       try_consume(p, semi, "Expected a ';'");
    }
-   else if (peek(p, 0).type == print
+   else if (peek(p, 0).type == println
          && peek(p, 1).type == open_paren) {
       NodeStmtPrint* ptr = arena_push(p->arena, NodeStmtPrint);
       consume(p);
@@ -178,6 +249,6 @@ NodeProg parse_prog(Parser* p) {
       NodeStmt* stmt = parse_stmt(p);
       da_append(&prog, *stmt);
    }
-   puts(ANSI_COLOR_GREEN"[lexer]: Compilation finished successfully."ANSI_COLOR_RESET);
+   puts(ANSI_COLOR_GREEN"[lexer]: Lexer stage finished successfully."ANSI_COLOR_RESET);
    return prog;
 }

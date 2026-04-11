@@ -2,7 +2,7 @@
 #include <string.h>
 
 #define EXIT(s, a)\
-         printf(s, a);\
+         printf(ANSI_COLOR_RED s ANSI_COLOR_RESET, a);\
          (void)system("rm out.c");\
          exit(1);
 
@@ -39,7 +39,7 @@ static inline void gen_expr(Generator* gen, NodeExpr* expr) {
             gen_term(gen, expr->value.term);
          }
          break;
-         case EXPR_BIN_EXPR: 
+      case EXPR_BIN_EXPR: 
          {
             switch (expr->value.bin_expr->type) {
                case EXPR_ADD: 
@@ -71,9 +71,14 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
                   EXIT("[generator]: Redefinition of `%s`. Definition failed.\n", stmt->stmt_let->ident.value);
                }
             }
-            Symbol sym = { stmt->stmt_let->ident.value };
+            Symbol sym = { .ident = stmt->stmt_let->ident.value, .type = stmt->stmt_let->ident.type, .mut = stmt->stmt_let->mut};
             da_append(&gen->table, sym);
-            fprintf(gen->out, "    int %s = ", sym.ident);
+            if (sym.mut) {
+               fprintf(gen->out, "    int %s = ", sym.ident);
+            }
+            else {
+               fprintf(gen->out, "    const int %s = ", sym.ident);
+            }
             gen_expr(gen, stmt->stmt_let->expr);
             fprintf(gen->out, ";\n");
          }
@@ -96,11 +101,16 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
          {
             for (size_t i = 0; i < gen->table.size; i++) {
                if (!strcmp(gen->table.items[i].ident, stmt->stmt_assign->ident.value)) {
-                  Symbol sym = { stmt->stmt_assign->ident.value };
-                  fprintf(gen->out, "    %s = ", sym.ident);
-                  gen_expr(gen, stmt->stmt_assign->expr);
-                  fprintf(gen->out, ";\n");
-                  return;
+                  if (!gen->table.items[i].mut) {
+                     EXIT("[generator]: Attempting to change an immutable variable `%s`. Assignment failed.\n", stmt->stmt_assign->ident.value);
+                  }
+                  else {
+                     Symbol sym = { .ident = stmt->stmt_assign->ident.value, .type = stmt->stmt_assign->ident.type, .mut = true};
+                     fprintf(gen->out, "    %s = ", sym.ident);
+                     gen_expr(gen, stmt->stmt_assign->expr);
+                     fprintf(gen->out, ";\n");
+                     return;
+                  }
                }
             }
             EXIT("[generator]: Undefined identifier `%s`. Assignment failed.\n", stmt->stmt_assign->ident.value);

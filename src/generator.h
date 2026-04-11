@@ -5,6 +5,8 @@
 
 typedef struct {
    const char* ident;
+   TokenType type;
+   bool mut;
 } Symbol;
 
 typedef struct {

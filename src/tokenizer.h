@@ -7,9 +7,7 @@
 #include <string.h>
 
 typedef enum {
-   exit_,
-   int_lit,
-   string_lit,
+   // symbols
    semi,
    colon,
    d_quote,
@@ -17,15 +15,40 @@ typedef enum {
    plus,
    minus,
    star,
-   slash,
-   println,
-   print,
-   ident,
+   fslash,
+   bslash,
    open_paren,
    close_paren,
-   return_,
-   let,
+   open_brace,
+   close_brace,
+   open_bracker,
+   close_bracket,
    equals,
+   ampersand,
+   comma,
+   dot, // Does both dereferences and access
+   caret,
+   pipe,
+   exclam, // Generics symbol
+   greater,
+   less,
+
+   // functions and keywords
+   print,
+   println,
+   write,
+   writeln,
+   const_,
+   mut,
+   ident,
+   return_,
+   exit_,
+
+   // literals
+
+   int_lit,
+   string_lit,
+   func_lit, // for much later
 
    // types
 
