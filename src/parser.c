@@ -72,47 +72,51 @@ static inline NodeTerm* parse_term(Parser* p) {
    return term;
 }
 
+static inline int get_prec(TokenType t) {
+   switch (t) {
+      case plus: case minus: return 1;
+      case star: case slash: return 2;
+      default: return -1;
+   }
+}
+
 // TODO Implement an actual pratt parser. This works for now because it is dependent on gcc
 // More complicated custom syntax expressions *WILL* fail.
 __attribute__((warn_unused_result))
-   static inline NodeExpr* parse_expr(Parser* p) {
-      NodeExpr* expr = arena_push(p->arena, NodeExpr);
+   static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
+      NodeExpr* lhs = arena_push(p->arena, NodeExpr);
       NodeTerm* term = parse_term(p);
-      if (peek(p, 0).type == plus) {
-         NodeBinExpr* bin_expr = arena_push(p->arena, NodeBinExpr);
-         NodeBinExprAdd* bin_expr_add = arena_push(p->arena, NodeBinExprAdd);
-         NodeExpr* lhs_expr = arena_push(p->arena, NodeExpr);
-         bin_expr->type = EXPR_ADD;
-         lhs_expr->value.term = term;
-         lhs_expr->type = EXPR_TERM;
-         bin_expr_add->lhs = lhs_expr;
+      lhs->type = EXPR_TERM;
+      lhs->value.term = term;
+
+      while (1) {
+         TokenType op = peek(p, 0).type;
+         int prec = get_prec(op);
+         if (prec < min_prec) break;
+
          consume(p);
-         NodeExpr* rhs = parse_expr(p);
-         bin_expr_add->rhs = rhs;
-         bin_expr->var.add = bin_expr_add;
-         expr->value.bin_expr = bin_expr;
-         expr->type = EXPR_BIN_EXPR;
-         return expr;
-      }
-      else if (peek(p, 0).type == star) {
+         NodeExpr* rhs = parse_expr(p, prec+1);
          NodeBinExpr* bin_expr = arena_push(p->arena, NodeBinExpr);
-         NodeBinExprMulti* bin_expr_multi = arena_push(p->arena, NodeBinExprMulti);
-         NodeExpr* lhs_expr = arena_push(p->arena, NodeExpr);
-         bin_expr->type = EXPR_MULTI;
-         lhs_expr->value.term = term;
-         lhs_expr->type = EXPR_TERM;
-         bin_expr_multi->lhs = lhs_expr;
-         consume(p);
-         NodeExpr* rhs = parse_expr(p);
-         bin_expr_multi->rhs = rhs;
-         bin_expr->var.multi = bin_expr_multi;
-         expr->value.bin_expr = bin_expr;
-         expr->type = EXPR_BIN_EXPR;
-         return expr;
+         NodeExpr* new_lhs = arena_push(p->arena, NodeExpr);
+         if (op == plus) {
+            NodeBinExprAdd* bin_expr_add = arena_push(p->arena, NodeBinExprAdd);
+            bin_expr_add->lhs = lhs;
+            bin_expr_add->rhs = rhs;
+            bin_expr->type = EXPR_ADD;
+            bin_expr->var.add = bin_expr_add;
+         }
+         else if (op == star) {
+            NodeBinExprMulti* bin_expr_multi = arena_push(p->arena, NodeBinExprMulti);
+            bin_expr_multi->lhs = lhs;
+            bin_expr_multi->rhs = rhs;
+            bin_expr->type = EXPR_MULTI;
+            bin_expr->var.multi = bin_expr_multi;
+         }
+         new_lhs->type = EXPR_BIN_EXPR;
+         new_lhs->value.bin_expr = bin_expr;
+         lhs = new_lhs;
       }
-      expr->type = EXPR_TERM;
-      expr->value.term = term;
-      return expr;
+      return lhs;
    }
 
 static inline NodeStmt* parse_stmt(Parser* p) {
@@ -125,7 +129,7 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       stmt_let->ident = consume(p);
       stmt->stmt_let = stmt_let;
       consume(p);
-      stmt->stmt_let->expr = parse_expr(p);
+      stmt->stmt_let->expr = parse_expr(p, 0);
       stmt->type = STMT_LET;
       try_consume(p, semi, "Expected a ';'");
    }
@@ -134,7 +138,7 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       NodeStmtExit* stmt_exit = arena_push(p->arena, NodeStmtExit);
       consume(p);
       consume(p);
-      stmt_exit->expr = parse_expr(p);
+      stmt_exit->expr = parse_expr(p, 0);
       stmt->stmt_exit = stmt_exit;
       stmt->type = STMT_EXIT;
       try_consume(p, close_paren, "Expected a ')'");
@@ -146,7 +150,7 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       ptr->ident = consume(p);
       stmt->stmt_assign = ptr;
       consume(p);
-      stmt->stmt_assign->expr = parse_expr(p);
+      stmt->stmt_assign->expr = parse_expr(p, 0);
       stmt->type = STMT_ASSIGN;
       try_consume(p, semi, "Expected a ';'");
    }
@@ -155,7 +159,7 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       NodeStmtPrint* ptr = arena_push(p->arena, NodeStmtPrint);
       consume(p);
       consume(p);
-      ptr->expr = parse_expr(p);
+      ptr->expr = parse_expr(p, 0);
       stmt->stmt_print = ptr;
       stmt->type = STMT_PRINTLN;
       try_consume(p, close_paren, "Expected a ')'");

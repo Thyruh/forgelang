@@ -1,5 +1,4 @@
-let c = 65;
-c = 90;
+let c = 65+2*2;
 println("Hello, World!");
 println("This is the forgelang compiler speaking.");
-exit(c*2);
+exit(c);

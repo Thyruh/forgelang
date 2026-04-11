@@ -7,12 +7,14 @@
 #define DEBUG_IDENT(buf) printf("[tokenizer]: ident \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
 #define DEBUG_INT(buf) printf("[tokenizer]: int literal \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
 #define DEBUG_STRING(buf) printf("[tokenizer]: string literal \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value))
+#define DEBUG_TYPE(buf) printf("[tokenizer]: type \"%s\" added successfully at %zu:%zu\n", (buf), t->pos.line, t->pos.line_pos-strlen(tokens.items[tokens.size-1].value)+1)
 #else
 #define DEBUG_TOKEN(ch) ch // this need to be here for the token switch
 #define DEBUG_KW(buf)
 #define DEBUG_IDENT(buf)
 #define DEBUG_INT(buf)
 #define DEBUG_STRING(buf)
+#define DEBUG_TYPE(buf)
 #endif
 
 Tokenizer Tokenizer_create(char** src, size_t length) {
@@ -72,6 +74,81 @@ Tokens tokenize(Tokenizer* t) {
          else if (!strcmp(buf.items, "exit")) {
             da_append(&tokens, ((Token){.type = exit_, .value = strdup(buf.items), .pos = t->pos}));
             DEBUG_KW(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "exit")) {
+            da_append(&tokens, ((Token){.type = exit_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_KW(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "char") || !strcmp(buf.items, "i8")) {
+            da_append(&tokens, ((Token){.type = i8_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_KW(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "uchar") || !strcmp(buf.items, "u8")) {
+            da_append(&tokens, ((Token){.type = u8_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_KW(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "i16")) {
+            da_append(&tokens, ((Token){.type = i16_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_KW(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "i32")) {
+            da_append(&tokens, ((Token){.type = i32_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "i64")) {
+            da_append(&tokens, ((Token){.type = i64_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "u32")) {
+            da_append(&tokens, ((Token){.type = u32_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "u64")) {
+            da_append(&tokens, ((Token){.type = u64_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "f32")) {
+            da_append(&tokens, ((Token){.type = f32_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "f64")) {
+            da_append(&tokens, ((Token){.type = f64_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "uptr")) {
+            da_append(&tokens, ((Token){.type = uptr, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "ptr")) {
+            da_append(&tokens, ((Token){.type = ptr, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "bool")) {
+            da_append(&tokens, ((Token){.type = bool_, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "string")) {
+            da_append(&tokens, ((Token){.type = string, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
+            da_clear(&buf);
+         }
+         else if (!strcmp(buf.items, "ustring")) {
+            da_append(&tokens, ((Token){.type = ustring, .value = strdup(buf.items), .pos = t->pos}));
+            DEBUG_TYPE(buf.items);
             da_clear(&buf);
          }
          else {
@@ -145,6 +222,10 @@ Tokens tokenize(Tokenizer* t) {
          //    da_append(&tokens, ((Token){.type = d_quote, .value = "", .pos = t->pos}));
          //    break;
          case ';':
+            DEBUG_TOKEN(consume(t));
+            da_append(&tokens, ((Token){.type = semi, .value = "", .pos = t->pos}));
+            break;
+         case ':':
             DEBUG_TOKEN(consume(t));
             da_append(&tokens, ((Token){.type = semi, .value = "", .pos = t->pos}));
             break;

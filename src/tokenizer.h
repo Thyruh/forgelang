@@ -29,17 +29,18 @@ typedef enum {
 
    // types
 
-   i8_ , char_,   // __INT8_TYPE__
+   i8_ ,          // __INT8_TYPE__
    i16_,          // __INT16_TYPE__
    i32_,          // __INT32_TYPE__
    i64_,          // __INT64_TYPE__
-   u8_ , uchar_,  // __UINT8_TYPE__
+   u8_ ,          // __UINT8_TYPE__
    u16_,          // __UINT16_TYPE__
    u32_,          // __UINT32_TYPE__
    u64_,          // __UINT64_TYPE__
    f32_,
    f64_,
    uptr,
+   ptr,
 
    bool_,
 
