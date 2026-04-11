@@ -10,7 +10,8 @@ int main(void) {
     const __UINT16_TYPE__ f = 60000;
     const __UINT32_TYPE__ g = 4000000000;
     const __UINT64_TYPE__ h = 1000000000;
-    const float i = 3;
+    float i = 3;
+    i = 90;
     const double j = 3;
     const _Bool k = 1;
     const unsigned char m = 200;
