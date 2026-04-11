@@ -37,55 +37,44 @@ static inline Token try_consume(Parser* p, TokenType type, char* err_msg) {
    }
 }
 
-static inline TokenType get_type(Token token) {
+static inline const char* get_type(Token token) {
    switch (token.type) {
+      case char_:
+         return "char";
+      case uchar_:
+         return "unsigned char";
       case i8_:
-         return i8_;
-         break;
+         return "__INT8_TYPE__";
       case i16_:
-         return i16_;
-         break;
+         return "__INT16_TYPE__";
       case i32_:
-         return i32_;
-         break;
+         return "__INT32_TYPE__";
       case i64_:
-         return i64_;
-         break;
+         return "__INT64_TYPE__";
       case u8_:
-         return u8_;
-         break;
+         return "__UINT8_TYPE__";
       case u16_:
-         return u16_;
-         break;
+         return "__UINT16_TYPE__";
       case u32_:
-         return u32_;
-         break;
+         return "__UINT32_TYPE__";
       case u64_:
-         return u64_;
-         break;
+         return "__UINT64_TYPE__";
       case f32_:
-         return f32_;
-         break;
+         return "float";
       case f64_:
-         return f64_;
-         break;
+         return "double";
       case bool_:
-         return bool_;
-         break;
+         return "_Bool";
       case ptr:
-         return ptr;
-         break;
+         return "__INTPTR_TYPE__";
       case uptr:
-         return uptr;
-         break;
+         return "__UINTPTR_TYPE__";
       case string:
-         return string;
-         break;
+         return "string"; // to change later
       case ustring:
-         return ustring;
-         break;
+         return "ustring"; // this too
       default:
-         printf("Unknown type %s at %zu:%zu\n", token.value, token.pos.line, token.pos.line_pos-strlen(token.value)+1);
+         printf("Unknown type %s at %zu:%zu\n", token_repr(token), token.pos.line, token.pos.line_pos-strlen(token.value)+1);
          exit(1);
    }
 }

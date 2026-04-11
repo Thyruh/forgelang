@@ -74,10 +74,10 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
             Symbol sym = { .ident = stmt->stmt_let->ident.value, .type = stmt->stmt_let->ident.type, .mut = stmt->stmt_let->mut};
             da_append(&gen->table, sym);
             if (sym.mut) {
-               fprintf(gen->out, "    int %s = ", sym.ident);
+               fprintf(gen->out, "    %s %s = ", stmt->stmt_let->type, sym.ident);
             }
             else {
-               fprintf(gen->out, "    const int %s = ", sym.ident);
+               fprintf(gen->out, "    const %s %s = ", stmt->stmt_let->type, sym.ident);
             }
             gen_expr(gen, stmt->stmt_let->expr);
             fprintf(gen->out, ";\n");
@@ -93,7 +93,7 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
       case STMT_PRINTLN:
          {
             fprintf(gen->out, "    puts(");
-            gen_expr(gen, stmt->stmt_exit->expr);
+            gen_expr(gen, stmt->stmt_print->expr);
             fprintf(gen->out, ");\n");
          }
          break;

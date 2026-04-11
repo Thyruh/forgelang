@@ -21,7 +21,7 @@ typedef enum {
    close_paren,
    open_brace,
    close_brace,
-   open_bracker,
+   open_bracket,
    close_bracket,
    equals,
    ampersand,
@@ -51,6 +51,9 @@ typedef enum {
    func_lit, // for much later
 
    // types
+
+   char_, // for token_len function
+   uchar_,
 
    i8_ ,          // __INT8_TYPE__
    i16_,          // __INT16_TYPE__
@@ -106,6 +109,8 @@ typedef struct {
 
 Tokenizer Tokenizer_create(char** src, size_t length);
 Tokens    tokenize(Tokenizer* t);
+const char* token_repr(Token t);
+const char* tokentype_str(TokenType t);
 
 #define DA_INIT_CAP 256
 #define da_clear(da) \

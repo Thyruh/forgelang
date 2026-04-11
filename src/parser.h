@@ -82,7 +82,7 @@ typedef struct {
 typedef struct {
    Token ident;
    NodeExpr* expr;
-   TokenType type;
+   const char* type;
    bool mut;
 } NodeStmtLet;
 
