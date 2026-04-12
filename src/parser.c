@@ -24,18 +24,32 @@ static inline Token try_consume(Parser* p, TokenType type, char* err_msg) {
       if (peek(p, 0).type == semi){
          return consume(p);
       }
-      else {
-         printf(ANSI_COLOR_RED"[parser]: %s at line %zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line-1);
-         exit(1);
-      }
+      else goto defer;
    }
    if (peek(p, 0).type == type) {
       return consume(p);
    }
-   else {
-      printf(ANSI_COLOR_RED"[parser]: %s at line %zu:%zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line, token.pos.line_pos);
+   else goto defer;
+defer: // throw this into its own function
+      printf(ANSI_COLOR_RED"[parser]: %s at line %zu:%zu\n"ANSI_COLOR_RESET"\t`", err_msg, token.pos.line-1, token.pos.line_pos);
+      TokenPos pos = p->tokens->items[p->index].pos;
+      while (p->tokens->items[p->index].pos.line == pos.line && p->index > 1) {
+         p->index--;
+      }
+      size_t i = 0;
+      p->index++;
+      while (p->tokens->items[p->index+i].pos.line == p->tokens->items[p->index].pos.line) {
+         printf(ANSI_COLOR_YELLOW"%s "ANSI_COLOR_RESET, tokentype_repr(p->tokens->items[p->index+i]));
+         i++;
+      }
+      puts("`");
+      printf("\t");
+      consume(p);
+      for (size_t _ = 0; _ < pos.line_pos-1; _++) {
+         printf("  ");
+      }
+      printf("^\n");
       exit(1);
-   }
 }
 
 static inline const char* get_type(Token token) {
@@ -72,7 +86,7 @@ static inline const char* get_type(Token token) {
          return "__UINTPTR_TYPE__";
       case string:
          return "string"; // to change later, placeholder
-      case ustring:
+      case ustring: // handle this somehow different because of the gcc warnings as there are no ascii signs beyond 127
          return "ustring"; // this too
       default:
          printf(ANSI_COLOR_RED"[parser]: Unknown type %s at %zu:%zu\n"ANSI_COLOR_RESET, tokentype_repr(token), token.pos.line, token.pos.line_pos+1);
@@ -102,6 +116,12 @@ static inline NodeTerm* parse_term(Parser* p) {
       term->value.string_lit = term_string;
       term->type = TERM_STRING_LIT;
    }
+   else if (peek(p, 0).type == char_lit) {
+      NodeTermCharLit* term_char = arena_push(p->arena, NodeTermCharLit);
+      term_char->char_lit= consume(p);
+      term->value.char_lit = term_char;
+      term->type = TERM_CHAR_LIT;
+   }
    else if (peek(p, 0).type == ident) {
       NodeTermIdent* term_ident = arena_push(p->arena, NodeTermIdent);
       term_ident->ident = consume(p);
@@ -110,7 +130,22 @@ static inline NodeTerm* parse_term(Parser* p) {
    }
    else {
       TokenPos pos = p->tokens->items[p->index].pos;
-      printf(ANSI_COLOR_RED"[parser]: Incomplete expression at %zu:%zu\n"ANSI_COLOR_RESET, pos.line, pos.line_pos);
+      printf(ANSI_COLOR_RED"[parser]: Incomplete expression at line %zu:\n\t"ANSI_COLOR_RESET"`", pos.line);
+      while (p->tokens->items[p->index].pos.line == pos.line && p->index > 1) {
+         p->index--;
+      }
+      size_t i = 0;
+      p->index++;
+      while (p->tokens->items[p->index+i].pos.line == pos.line) {
+         printf(ANSI_COLOR_YELLOW"%s "ANSI_COLOR_RESET, tokentype_repr(p->tokens->items[p->index+i]));
+         i++;
+      }
+      puts("`");
+      printf("\t");
+      for (size_t _ = 0; _ < pos.line_pos-1; _++) {
+         printf("  ");
+      }
+      printf("^\n");
       exit(1);
    }
    return term;
@@ -124,7 +159,7 @@ static inline int get_prec(TokenType t) {
    }
 }
 
-// TODO Add unary operations like negation, ++ and --
+// TODO Add unary operations like negatives, negation, ++ and --
 static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
    NodeExpr* lhs = arena_push(p->arena, NodeExpr);
    NodeTerm* term = parse_term(p);
@@ -154,7 +189,20 @@ static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
          bin_expr->type = EXPR_MULTI;
          bin_expr->var.multi = bin_expr_multi;
       }
-      // TODO parse slash and hyphon for division and subtraction
+      else if (op == fslash) {
+         NodeBinExprMulti* bin_expr_multi = arena_push(p->arena, NodeBinExprMulti);
+         bin_expr_multi->lhs = lhs;
+         bin_expr_multi->rhs = rhs;
+         bin_expr->type = EXPR_DIVIDE;
+         bin_expr->var.multi = bin_expr_multi;
+      }
+      else if (op == minus) {
+         NodeBinExprMulti* bin_expr_multi = arena_push(p->arena, NodeBinExprMulti);
+         bin_expr_multi->lhs = lhs;
+         bin_expr_multi->rhs = rhs;
+         bin_expr->type = EXPR_SUBTR;
+         bin_expr->var.multi = bin_expr_multi;
+      }
       new_lhs->type = EXPR_BIN_EXPR;
       new_lhs->value.bin_expr = bin_expr;
       lhs = new_lhs;
@@ -162,7 +210,7 @@ static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
    return lhs;
 }
 
-// TODO: Type system
+// TODO: Type tracker creation
 static inline NodeStmt* parse_stmt(Parser* p) {
    NodeStmt* stmt = arena_push(p->arena, NodeStmt);
    if ((peek(p, 0).type == mut || peek(p, 0).type == const_)
@@ -216,7 +264,13 @@ static inline NodeStmt* parse_stmt(Parser* p) {
       try_consume(p, semi       , "Expected a ';'");
    }
    else {
-      printf("[parser]: Invalid statement at line %zu\n", p->tokens->items[p->index].pos.line);
+      printf(ANSI_COLOR_RED"[parser]: Invalid statement at line %zu:\n\t"ANSI_COLOR_RESET"`", p->tokens->items[p->index].pos.line);
+      size_t i = 0;
+      while (p->tokens->items[p->index+i].pos.line == p->tokens->items[p->index].pos.line) {
+         printf(ANSI_COLOR_YELLOW"%s "ANSI_COLOR_RESET, tokentype_repr(p->tokens->items[p->index+i]));
+         i++;
+      }
+      puts("`");
       exit(1);
    }
    return stmt;
@@ -229,5 +283,25 @@ NodeProg parse_prog(Parser* p) {
       da_append(&prog, *stmt);
    }
    puts(ANSI_COLOR_GREEN"[lexer]: Backend pipeline completed successfully."ANSI_COLOR_RESET);
+
+
+#ifdef DEBUG
+   puts(ANSI_COLOR_MAGENTA"\n```");
+   for (size_t i = 0; i < p->tokens->size; i++) {
+      const char* s = tokentype_repr(p->tokens->items[i]);
+      if (p->tokens->items[i].type == char_lit) {
+         printf("`%s` ", s);
+      }
+      else if (p->tokens->items[i].type == string_lit) {
+         printf("\"%s\" ", s);
+      }
+      else if (s[0] != ';') {
+         printf("%s ", s);
+      }
+      else
+         puts(";");
+   }
+   puts("```\n"ANSI_COLOR_RESET);
+#endif
    return prog;
 }

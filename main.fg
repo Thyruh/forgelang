@@ -1,4 +1,10 @@
-println("Hello, World!");
-println("This is the forgelang compiler speaking.");
-const name : i8= 10;
-exit(name);
+mut i:i32 = 32;
+const n:f64 = 9;
+const j:i32 = 10;
+const l:string = "Hello";
+const lu:string = "This is a simple string";
+i = 90/2;
+const usef:u32 = 10;
+println(l);
+println(lu);
+exit(n+usef+n+i+j+i-100);

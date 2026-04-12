@@ -14,6 +14,10 @@ typedef struct {
 } NodeTermStringLit;
 
 typedef struct {
+   Token char_lit;
+} NodeTermCharLit;
+
+typedef struct {
    Token ident;
 } NodeTermIdent; 
 
@@ -35,6 +39,8 @@ typedef struct {
 typedef enum {
    EXPR_ADD,
    EXPR_MULTI,
+   EXPR_SUBTR,
+   EXPR_DIVIDE
 } BinExprType;
 
 typedef struct {
@@ -48,6 +54,7 @@ typedef struct {
 typedef enum {
    TERM_INT_LIT,
    TERM_STRING_LIT,
+   TERM_CHAR_LIT,
    TERM_IDENT,
 } NodeTermType;
 
@@ -57,6 +64,7 @@ typedef struct {
       NodeTermIdent* ident;
       NodeTermIntLit* int_lit;
       NodeTermStringLit* string_lit;
+      NodeTermCharLit* char_lit;
    } value;
 } NodeTerm;
 

@@ -25,6 +25,7 @@ const char* tokentype_str(TokenType t) {
       case exit_:         return "exit";
       case int_lit:       return "int_lit";
       case string_lit:    return "string_lit";
+      case char_lit:      return "char_lit";
       case i8_:           return "i8";
       case char_:         return "char";
       case i16_:          return "i16";
@@ -49,6 +50,7 @@ const char* tokentype_repr(Token t) {
     switch (t.type) {
         case int_lit:
         case string_lit:
+        case char_lit:
         case func_lit:
         case ident:       return t.value;
         // keywords
@@ -81,8 +83,6 @@ const char* tokentype_repr(Token t) {
         // single char symbols
         case semi:        return ";";
         case colon:       return ":";
-        case d_quote:     return "\"";
-        case s_quote:     return "'";
         case plus:        return "+";
         case minus:       return "-";
         case star:        return "*";
@@ -108,6 +108,7 @@ const char* tokentype_repr(Token t) {
     }
 }
 
+#ifdef DEBUGG
 static inline void debug_tokens(Tokens* tokens) {
     for (size_t i = 0; i < tokens->size; i++) {
         Token t = tokens->items[i];
@@ -115,6 +116,7 @@ static inline void debug_tokens(Tokens* tokens) {
             i, tokentype_str(t.type), tokentype_repr(t), t.pos.line, t.pos.line_pos+1);
     }
 }
+#endif
 
 Tokenizer Tokenizer_create(char** src, size_t length, mem_arena* arena) {
    assert(length && "[ERROR]: empty source file");
@@ -155,10 +157,10 @@ Tokens tokenize(Tokenizer* t) {
          consume(t);
          continue;
       }
-      if (isalpha(ch)) {
+      if (isalpha(ch) || ch == '_') { // TODO make this work
          size_t start = t->pos.line_pos;
          da_append(&buf, consume(t));
-         while (isalnum(peek(t))) {
+         while (isalnum(peek(t)) || ch == '_') {
             da_append(&buf, consume(t));
          }
          da_append(&buf, '\0');
@@ -291,17 +293,16 @@ Tokens tokenize(Tokenizer* t) {
          continue;
       }
 
-      if (ch == '"') {
+      if (ch == '"') { // TODO no closing " case
          consume(t);
          size_t start = t->pos.line_pos;
          da_append(&buf, consume(t));
-         while (peek(t) != '"') {
+         while (peek(t) != '"')
             da_append(&buf, consume(t));
-         }
          consume(t);
          da_append(&buf, '\0');
          TokenPos start_pos = { t->pos.line, start};
-         char* name = m_arena_push(t->arena, buf.size, false);
+         char* name = arena_push_arr(t->arena, char, buf.size);
          memcpy(name, buf.items, buf.size);
          da_append(&tokens, ((Token){.type = string_lit, .value = name, .pos = start_pos}));
          da_clear(&buf);
@@ -309,6 +310,21 @@ Tokens tokenize(Tokenizer* t) {
       }
 
       switch (ch) {
+         case 39: // single quote
+            {
+               size_t start = t->pos.line_pos;
+               TokenPos p = { t->pos.line, start };
+               consume(t);
+               da_clear(&buf);
+               da_append(&buf, consume(t));
+               consume(t);
+               char* name = arena_push_arr(t->arena, char, 2);
+               da_append(&buf, '\0');
+               memcpy(name, buf.items, 2);
+               da_append(&tokens, ((Token){.type = char_lit, .value = name, .pos = p}));
+               da_clear(&buf);
+            }
+            break;
          case '+': 
             {
                size_t start = t->pos.line_pos;
@@ -365,14 +381,6 @@ Tokens tokenize(Tokenizer* t) {
                da_append(&tokens, ((Token){.type = close_paren, .value = "", .pos = p}));
             }
             break;
-         case 39: // single quote
-            {
-               size_t start = t->pos.line_pos;
-               consume(t);
-               TokenPos p = { t->pos.line, start };
-               da_append(&tokens, ((Token){.type = s_quote, .value = "", .pos = p}));
-            }
-            break;
          case ';':
             {
                size_t start = t->pos.line_pos;
@@ -394,7 +402,7 @@ Tokens tokenize(Tokenizer* t) {
             // exit(1);
       }
    }
-#ifdef DEBUG
+#ifdef DEBUGG
    debug_tokens(&tokens);
 #endif
    free(buf.items);

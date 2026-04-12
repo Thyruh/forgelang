@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// TODO The errors are really nice, but recovery is even nicer
+
 #include "../include/inttypes.h"
 #include "./tokenizer.h"
 #include "./parser.h"

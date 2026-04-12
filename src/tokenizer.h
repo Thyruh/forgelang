@@ -15,8 +15,6 @@ typedef enum {
    // symbols
    semi,
    colon,
-   d_quote,
-   s_quote,
    plus,
    minus,
    star,
@@ -53,6 +51,7 @@ typedef enum {
 
    int_lit,
    string_lit,
+   char_lit,
    func_lit, // for much later
 
    // types
