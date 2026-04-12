@@ -269,7 +269,7 @@ Tokens tokenize(Tokenizer* t) {
          }
          else {
             TokenPos start_pos = { t->pos.line, start};
-            char* name = m_arena_push(t->arena, buf.size, false);
+            char* name = arena_push_arr(t->arena, char, buf.size);
             memcpy(name, buf.items, buf.size);
             da_append(&tokens, ((Token){.type = ident, .value = name, .pos = start_pos}));
             da_clear(&buf);
@@ -284,7 +284,7 @@ Tokens tokenize(Tokenizer* t) {
             da_append(&buf, consume(t));
          da_append(&buf, '\0');
          TokenPos start_pos = { t->pos.line, start};
-         char* name = m_arena_push(t->arena, buf.size, false);
+         char* name = arena_push_arr(t->arena, char, buf.size);
          memcpy(name, buf.items, buf.size);
          da_append(&tokens, ((Token){.type = int_lit, .value = name, .pos = start_pos}));
          da_clear(&buf);
@@ -301,7 +301,7 @@ Tokens tokenize(Tokenizer* t) {
          consume(t);
          da_append(&buf, '\0');
          TokenPos start_pos = { t->pos.line, start};
-         char* name = m_arena_push(t->arena, buf.size, false);
+         char* name = arena_push_arr(t->arena, char, buf.size);
          memcpy(name, buf.items, buf.size);
          da_append(&tokens, ((Token){.type = string_lit, .value = name, .pos = start_pos}));
          da_clear(&buf);

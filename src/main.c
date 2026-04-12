@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
    fseek(f, 0, SEEK_END);
    u64 size = (u64)ftell(f);
    rewind(f);
-   char* src = m_arena_push(arena, size, false);
+   char* src = arena_push_arr(arena, char, size);
    (void)fread(src, 1, size, f);
 
    Tokenizer tokenizer = Tokenizer_create(&src, size, arena);
