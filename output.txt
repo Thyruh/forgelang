@@ -289,3 +289,7 @@
 [tokenizer]: [288] close_paren     value = )                    pos=43:7
 [tokenizer]: [289] semi            value = ;                    pos=43:8
 [32m[lexer]: Lexer stage finished successfully.[0m
+[arena.h]: Used (no header): 8360
+[arena.h]: Used (total): 8384
+[arena.h]: Capacity: 4194304
+[arena.h]: Ratio (%): 0/100%

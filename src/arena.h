@@ -1,9 +1,6 @@
 #pragma once
 #ifndef ARENA
 #define ARENA
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -41,6 +38,9 @@ static inline void* m_arena_push(mem_arena* arena, u64 size, bool dn);
 
 // header guards
 #ifdef ARENA_IMPLEMENTATION
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 mem_arena* arena_create(u64 capacity) {
 #ifndef ARENA_VOID_RESPONSE
@@ -61,6 +61,23 @@ void arena_free(mem_arena* arena) {
    printf("[MEM_SAFETY_MESSAGE]: If you segfault - check for accessing freed memory\n");
 #endif
 
+#ifdef ARENA_REPORT
+   printf("[arena.h]: Used (no header): %lu\n",
+         arena->pos - ARENA_BASE_POS);
+
+   printf("[arena.h]: Used (total): %lu\n",
+         arena->pos);
+
+   printf("[arena.h]: Capacity: %lu\n",
+         arena->capacity);
+
+   printf("[arena.h]: Ratio (%%): %lu/100%%\n",
+         (arena->pos - ARENA_BASE_POS) * 100 /
+         (arena->capacity - ARENA_BASE_POS));
+
+#endif
+
+   arena_clear(arena);
    free(arena);
 }
 

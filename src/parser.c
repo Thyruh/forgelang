@@ -3,13 +3,14 @@
 
 __attribute__((warn_unused_result))
    static inline Token peek(Parser* p, size_t offset) {
-      if (p->index+offset >= p->tokens->size ) return (Token){.type = TERMINATE, .pos = {0}, .value = ""}; // I never actually use the TERMINATE token
+      if (p->index+offset >= p->tokens->size )
+         return (Token){.type = TERMINATE, .pos = {0}, .value = ""};
       return p->tokens->items[p->index+offset];
    }
 
 static inline Token consume(Parser* p) {
    if (p->index >= p->tokens->size) {
-      printf("[parser]: [ERROR]: Unexpected end of tokens");
+      printf(ANSI_COLOR_RED"[parser]: [ERROR]: Unexpected end of tokens"ANSI_COLOR_RESET);
       exit(1);
    }
    return p->tokens->items[p->index++];
@@ -24,7 +25,7 @@ static inline Token try_consume(Parser* p, TokenType type, char* err_msg) {
          return consume(p);
       }
       else {
-         printf(ANSI_COLOR_RED"[parser]: %s at line %zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line);
+         printf(ANSI_COLOR_RED"[parser]: %s at line %zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line-1);
          exit(1);
       }
    }
@@ -32,7 +33,7 @@ static inline Token try_consume(Parser* p, TokenType type, char* err_msg) {
       return consume(p);
    }
    else {
-      printf(ANSI_COLOR_RED"[parser]: %s at line %zu:%zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line, token.pos.line_pos-strlen(token.value));
+      printf(ANSI_COLOR_RED"[parser]: %s at line %zu:%zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line, token.pos.line_pos);
       exit(1);
    }
 }
@@ -74,8 +75,9 @@ static inline const char* get_type(Token token) {
       case ustring:
          return "ustring"; // this too
       default:
-         printf("Unknown type %s at %zu:%zu\n", tokentype_repr(token), token.pos.line, token.pos.line_pos-strlen(token.value)+1);
+         printf(ANSI_COLOR_RED"[parser]: Unknown type %s at %zu:%zu\n"ANSI_COLOR_RESET, tokentype_repr(token), token.pos.line, token.pos.line_pos+1);
          exit(1);
+         // TODO Generalize the error logging function behind a macro
    }
 }
 
@@ -107,7 +109,8 @@ static inline NodeTerm* parse_term(Parser* p) {
       term->type = TERM_IDENT;
    }
    else {
-      printf("Incomplete expression.\n");
+      TokenPos pos = p->tokens->items[p->index].pos;
+      printf(ANSI_COLOR_RED"[parser]: Incomplete expression at %zu:%zu\n"ANSI_COLOR_RESET, pos.line, pos.line_pos);
       exit(1);
    }
    return term;
@@ -121,7 +124,7 @@ static inline int get_prec(TokenType t) {
    }
 }
 
-// TODO Add unary operations like negation
+// TODO Add unary operations like negation, ++ and --
 static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
    NodeExpr* lhs = arena_push(p->arena, NodeExpr);
    NodeTerm* term = parse_term(p);
@@ -160,34 +163,21 @@ static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
 }
 
 // TODO: Type system
-// TODO Combine the mut and const branches as they only differ in the flag.
 static inline NodeStmt* parse_stmt(Parser* p) {
    NodeStmt* stmt = arena_push(p->arena, NodeStmt);
-   if (peek(p, 0).type == mut
+   if ((peek(p, 0).type == mut || peek(p, 0).type == const_)
          && peek(p, 1).type == ident
          && peek(p, 2).type == colon) {
       NodeStmtLet* stmt_let = arena_push(p->arena, NodeStmtLet);
-      consume(p);
-      stmt_let->ident = consume(p);
-      consume(p);
-      stmt_let->type = get_type(consume(p));
-      try_consume(p, equals, "Expected a '='");
-      stmt_let->mut = true;
-      stmt->stmt_let = stmt_let;
-      stmt->stmt_let->expr = parse_expr(p, 0);
-      stmt->type = STMT_LET;
-      try_consume(p, semi, "Expected a ';'");
-   }
-   else if (peek(p, 0).type == const_
-         && peek(p, 1).type == ident
-         && peek(p, 2).type == colon) {
-      NodeStmtLet* stmt_let = arena_push(p->arena, NodeStmtLet);
-      consume(p);
-      stmt_let->ident = consume(p);
-      consume(p);
-      stmt_let->type = get_type(consume(p));
-      try_consume(p, equals, "Expected a '='");
       stmt_let->mut = false;
+      if (peek(p, 0).type == mut) {
+         stmt_let->mut = true;
+      }
+      consume(p);
+      stmt_let->ident = consume(p);
+      consume(p);
+      stmt_let->type = get_type(consume(p));
+      try_consume(p, equals, "Expected a '='");
       stmt->stmt_let = stmt_let;
       stmt->stmt_let->expr = parse_expr(p, 0);
       stmt->type = STMT_LET;
@@ -238,6 +228,6 @@ NodeProg parse_prog(Parser* p) {
       NodeStmt* stmt = parse_stmt(p);
       da_append(&prog, *stmt);
    }
-   puts(ANSI_COLOR_GREEN"[lexer]: Lexer stage finished successfully."ANSI_COLOR_RESET);
+   puts(ANSI_COLOR_GREEN"[lexer]: Backend pipeline completed successfully."ANSI_COLOR_RESET);
    return prog;
 }

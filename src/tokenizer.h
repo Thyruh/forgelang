@@ -8,6 +8,7 @@
 
 #define ARENA_IMPLEMENTATION
 #define ARENA_VOID_RESPONSE
+#define ARENA_REPORT
 #include "./arena.h"
 
 typedef enum {
