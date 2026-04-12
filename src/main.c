@@ -6,6 +6,10 @@
 #include "./parser.h"
 #include "./generator.h"
 
+// TODO: argc check — if source file doesn't exist fopen returns NULL and fseek segfaults
+// TODO: --loose flag — disable full move/borrow checking
+// TODO: --freestanding flag — strip all libc and forgelang std dependencies
+
 int main(int argc, char** argv) {
    if (argc == 1) return 1; // TODO the default dialog explaining how to use the compiler
 

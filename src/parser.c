@@ -24,7 +24,7 @@ static inline Token try_consume(Parser* p, TokenType type, char* err_msg) {
          return consume(p);
       }
       else {
-         printf(ANSI_COLOR_RED"[parser]: %s at line %zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line-1);
+         printf(ANSI_COLOR_RED"[parser]: %s at line %zu\n"ANSI_COLOR_RESET, err_msg, token.pos.line);
          exit(1);
       }
    }
@@ -70,11 +70,11 @@ static inline const char* get_type(Token token) {
       case uptr:
          return "__UINTPTR_TYPE__";
       case string:
-         return "string"; // to change later
+         return "string"; // to change later, placeholder
       case ustring:
          return "ustring"; // this too
       default:
-         printf("Unknown type %s at %zu:%zu\n", token_repr(token), token.pos.line, token.pos.line_pos-strlen(token.value)+1);
+         printf("Unknown type %s at %zu:%zu\n", tokentype_repr(token), token.pos.line, token.pos.line_pos-strlen(token.value)+1);
          exit(1);
    }
 }
@@ -121,6 +121,7 @@ static inline int get_prec(TokenType t) {
    }
 }
 
+// TODO Add unary operations like negation
 static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
    NodeExpr* lhs = arena_push(p->arena, NodeExpr);
    NodeTerm* term = parse_term(p);
@@ -150,6 +151,7 @@ static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
          bin_expr->type = EXPR_MULTI;
          bin_expr->var.multi = bin_expr_multi;
       }
+      // TODO parse slash and hyphon for division and subtraction
       new_lhs->type = EXPR_BIN_EXPR;
       new_lhs->value.bin_expr = bin_expr;
       lhs = new_lhs;
@@ -158,6 +160,7 @@ static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
 }
 
 // TODO: Type system
+// TODO Combine the mut and const branches as they only differ in the flag.
 static inline NodeStmt* parse_stmt(Parser* p) {
    NodeStmt* stmt = arena_push(p->arena, NodeStmt);
    if (peek(p, 0).type == mut

@@ -117,7 +117,10 @@ typedef struct {
    mem_arena* arena;
 } Parser;
 
-Parser Parser_create(Tokens* tokens, mem_arena* arena);
+// TODO Add if-else statement nodes and codegen
+// TODO Add for loop statement nodes and codegen
+// TODO Add function declaration and call nodes and codegen
+
+Parser   Parser_create(Tokens* tokens, mem_arena* arena);
 NodeProg parse_prog(Parser* parser);
-__attribute__((warn_unused_result)) static inline NodeBinExpr* parse_bin_expr(Parser* p);
 #endif // PARSER

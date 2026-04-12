@@ -45,7 +45,7 @@ const char* tokentype_str(TokenType t) {
    }
 }
 
-const char* token_repr(Token t) {
+const char* tokentype_repr(Token t) {
     switch (t.type) {
         case int_lit:
         case string_lit:
@@ -112,7 +112,7 @@ static inline void debug_tokens(Tokens* tokens) {
     for (size_t i = 0; i < tokens->size; i++) {
         Token t = tokens->items[i];
         printf("[tokenizer]: [%zu] %-15s value = %-20s pos=%zu:%zu\n",
-            i, tokentype_str(t.type), token_repr(t), t.pos.line, t.pos.line_pos+1);
+            i, tokentype_str(t.type), tokentype_repr(t), t.pos.line, t.pos.line_pos+1);
     }
 }
 
@@ -301,7 +301,7 @@ Tokens tokenize(Tokenizer* t) {
          consume(t);
          da_append(&buf, '\0');
          TokenPos start_pos = { t->pos.line, start};
-         char* name = arena_push_arr(t->arena, char, buf.size);
+         char* name = m_arena_push(t->arena, buf.size, false);
          memcpy(name, buf.items, buf.size);
          da_append(&tokens, ((Token){.type = string_lit, .value = name, .pos = start_pos}));
          da_clear(&buf);

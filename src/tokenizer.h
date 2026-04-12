@@ -113,9 +113,9 @@ typedef struct {
    mem_arena* arena;
 } Tokenizer;
 
-Tokenizer Tokenizer_create(char** src, size_t length, mem_arena* arena);
-Tokens    tokenize(Tokenizer* t);
-const char* token_repr(Token t);
+Tokenizer   Tokenizer_create(char** src, size_t length, mem_arena* arena);
+Tokens      tokenize(Tokenizer* t);
+const char* tokentype_repr(Token t);
 const char* tokentype_str(TokenType t);
 
 #define DA_INIT_CAP 256

@@ -6,6 +6,8 @@
          (void)system("rm out.c");\
          exit(1);
 
+// TODO Implement string fatptr backend
+
 static inline void gen_term(Generator* gen, NodeTerm* term) {
    switch (term->type) {
       case TERM_INT_LIT: 
@@ -51,17 +53,19 @@ static inline void gen_expr(Generator* gen, NodeExpr* expr) {
                   break;
                case EXPR_MULTI:
                   {
-                     gen_expr(gen, expr->value.bin_expr->var.add->lhs);
+                     gen_expr(gen, expr->value.bin_expr->var.multi->lhs);
                      fprintf(gen->out, "*");
-                     gen_expr(gen, expr->value.bin_expr->var.add->rhs);
+                     gen_expr(gen, expr->value.bin_expr->var.multi->rhs);
                   }
                   break;
+               // TODO Add EXPR_SUBTR and EXPR_DIVIDE
             }
          }
          break;
    }
 }
 
+// TODO: integer overflow — exit instead of wrapping
 static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
    switch (stmt->type) {
       case STMT_LET:
@@ -128,7 +132,7 @@ Generator Generator_create(NodeProg* stmts, FILE* out) {
 
 void gen_prog(Generator* gen) {
    fprintf(gen->out, "// Generated automatically by the forgelang compiler\n");
-   fprintf(gen->out, "#include <stdio.h>\n\n");
+   fprintf(gen->out, "#include <stdio.h>\n\n"); // TODO Only emit the libraries that are necessary
    fprintf(gen->out, "int main(void) {\n");
    for (size_t i = 0; i < gen->stmts->size; i++) {
       gen_stmt(gen, &gen->stmts->items[i]);
