@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int main(void) {
-    const __INT8_TYPE__ a = 10;
+    const __INT8_TYPE__ name = 10;
     const __INT16_TYPE__ b = 1000;
     const __INT32_TYPE__ c = 100000;
     const __INT64_TYPE__ d = 1000000000;
@@ -15,7 +15,7 @@ int main(void) {
     const double j = 3;
     const _Bool k = 1;
     const unsigned char m = 200;
-    const __INT32_TYPE__ n = a+b;
+    const __INT32_TYPE__ n = name+b;
     const __INT32_TYPE__ o = c*2;
     const __INT32_TYPE__ p = d+c;
     const __INT32_TYPE__ q = e+f;

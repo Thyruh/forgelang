@@ -79,9 +79,8 @@ static inline const char* get_type(Token token) {
    }
 }
 
-Parser Parser_create(Tokens* tokens) {
+Parser Parser_create(Tokens* tokens, mem_arena* arena) {
    Parser p = { 0 };
-   mem_arena* arena = arena_create(MiB(4));
    p.tokens = tokens;
    p.arena = arena;
    return p;
@@ -122,8 +121,6 @@ static inline int get_prec(TokenType t) {
    }
 }
 
-// TODO Implement an actual pratt parser. This works for now because it is dependent on gcc
-// More complicated custom syntax expressions *WILL* fail.
 static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
    NodeExpr* lhs = arena_push(p->arena, NodeExpr);
    NodeTerm* term = parse_term(p);

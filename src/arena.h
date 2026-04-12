@@ -29,7 +29,7 @@
 typedef struct {
    u64 pos;
    u64 capacity;
-   i64  offset; // For reallocation to prevent dangling pointers
+   i64 offset; // For reallocation to prevent dangling pointers
 } mem_arena;
 
 static inline mem_arena* arena_create(u64 capacity);

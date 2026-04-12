@@ -6,6 +6,10 @@
 #include <assert.h>
 #include <string.h>
 
+#define ARENA_IMPLEMENTATION
+#define ARENA_VOID_RESPONSE
+#include "./arena.h"
+
 typedef enum {
    // symbols
    semi,
@@ -105,9 +109,11 @@ typedef struct {
 
    size_t index;
    TokenPos pos;
+
+   mem_arena* arena;
 } Tokenizer;
 
-Tokenizer Tokenizer_create(char** src, size_t length);
+Tokenizer Tokenizer_create(char** src, size_t length, mem_arena* arena);
 Tokens    tokenize(Tokenizer* t);
 const char* token_repr(Token t);
 const char* tokentype_str(TokenType t);

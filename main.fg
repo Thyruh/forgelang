@@ -1,4 +1,4 @@
-const a: i8 = 10;
+const name : i8 = 10;
 const b: i16 = 1000;
 const c: i32 = 100000;
 const d: i64 = 1000000000;
@@ -11,7 +11,7 @@ i = 90;
 const j: f64 = 3;
 const k: bool = 1;
 const m: uchar = 200;
-const n: i32 = a + b;
+const n: i32 = name + b;
 const o: i32 = c * 2;
 const p: i32 = d + c;
 const q: i32 = e + f;

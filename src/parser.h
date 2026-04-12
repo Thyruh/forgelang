@@ -2,9 +2,6 @@
 #ifndef PARSER
 #define PARSER
 #include "./tokenizer.h"
-#define ARENA_IMPLEMENTATION
-#define ARENA_VOID_RESPONSE
-#include "./arena.h"
 struct NodeExpr_;
 typedef struct NodeExpr_ NodeExpr;
 
@@ -120,7 +117,7 @@ typedef struct {
    mem_arena* arena;
 } Parser;
 
-Parser Parser_create(Tokens* tokens);
+Parser Parser_create(Tokens* tokens, mem_arena* arena);
 NodeProg parse_prog(Parser* parser);
 __attribute__((warn_unused_result)) static inline NodeBinExpr* parse_bin_expr(Parser* p);
 #endif // PARSER

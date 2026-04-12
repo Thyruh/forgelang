@@ -11,17 +11,18 @@ int main(int argc, char** argv) {
 
    (void)system("rm out.c out");
 
+   mem_arena* arena = arena_create(MiB(4));
    FILE* f = fopen(argv[argc-1], "r");
    fseek(f, 0, SEEK_END);
    u64 size = (u64)ftell(f);
    rewind(f);
-   char* src = malloc(size);
+   char* src = m_arena_push(arena, size, false);
    (void)fread(src, 1, size, f);
 
-   Tokenizer tokenizer = Tokenizer_create(&src, size); // TODO perhaps arena allocate everything from this moment
+   Tokenizer tokenizer = Tokenizer_create(&src, size, arena);
    Tokens tokens = tokenize(&tokenizer);
 
-   Parser parser = Parser_create(&tokens);
+   Parser parser = Parser_create(&tokens, arena);
    NodeProg prog = parse_prog(&parser);
 
    FILE* out = fopen("out.c", "w+");
@@ -29,18 +30,13 @@ int main(int argc, char** argv) {
    Generator gen = Generator_create(&prog, out);
    gen_prog(&gen);
 
-
-   free(src); // TODO carry everything onto that arena?
-   free(parser.arena);
-   for (size_t i = 0; i < tokens.size; i++) {
-      if (!strcmp(tokens.items[i].value, "")) continue;
-      free((void*)tokens.items[i].value);
-   }
-   free(tokens.items);
-   free(prog.items);
-   free(gen.table.items);
    fclose(out);
    fclose(f);
    (void)system("cc -oout -Wall -Wextra -pedantic out.c");
+
+   arena_free(arena);
+   free(tokens.items); // Those allocations are quite immovable to an arena cause they depend on da_append, which I dont want to touch for now
+   free(prog.items);
+   free(gen.table.items);
    return 0;
 }

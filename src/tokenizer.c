@@ -116,11 +116,12 @@ static inline void debug_tokens(Tokens* tokens) {
     }
 }
 
-Tokenizer Tokenizer_create(char** src, size_t length) {
+Tokenizer Tokenizer_create(char** src, size_t length, mem_arena* arena) {
    assert(length && "[ERROR]: empty source file");
    Tokenizer t = { 0 };
    t.length = length;
    t.src = *src;
+   t.arena = arena;
    t.pos.line = 1;
    t.pos.line_pos = 0;
    return t;
@@ -268,7 +269,9 @@ Tokens tokenize(Tokenizer* t) {
          }
          else {
             TokenPos start_pos = { t->pos.line, start};
-            da_append(&tokens, ((Token){.type = ident, .value = strdup(buf.items), .pos = start_pos}));
+            char* name = m_arena_push(t->arena, buf.size, false);
+            memcpy(name, buf.items, buf.size);
+            da_append(&tokens, ((Token){.type = ident, .value = name, .pos = start_pos}));
             da_clear(&buf);
          }
          continue;
@@ -281,7 +284,9 @@ Tokens tokenize(Tokenizer* t) {
             da_append(&buf, consume(t));
          da_append(&buf, '\0');
          TokenPos start_pos = { t->pos.line, start};
-         da_append(&tokens, ((Token){.type = int_lit, .value = strdup(buf.items), .pos = start_pos}));
+         char* name = m_arena_push(t->arena, buf.size, false);
+         memcpy(name, buf.items, buf.size);
+         da_append(&tokens, ((Token){.type = int_lit, .value = name, .pos = start_pos}));
          da_clear(&buf);
          continue;
       }
@@ -296,7 +301,9 @@ Tokens tokenize(Tokenizer* t) {
          consume(t);
          da_append(&buf, '\0');
          TokenPos start_pos = { t->pos.line, start};
-         da_append(&tokens, ((Token){.type = string_lit, .value = strdup(buf.items), .pos = start_pos}));
+         char* name = m_arena_push(t->arena, buf.size, false);
+         memcpy(name, buf.items, buf.size);
+         da_append(&tokens, ((Token){.type = string_lit, .value = name, .pos = start_pos}));
          da_clear(&buf);
          continue;
       }
