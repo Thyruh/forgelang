@@ -40,7 +40,6 @@ const char* tokentype_str(TokenType t) {
       case f64_:          return "f64";
       case bool_:         return "bool";
       case string:        return "string";
-      case ustring:       return "ustring";
       case TERMINATE:     return "TERMINATE";
       default:            return "unknown";
    }
@@ -77,7 +76,6 @@ const char* tokentype_repr(Token t) {
         case f64_:        return "f64";
         case bool_:       return "bool";
         case string:      return "string";
-        case ustring:     return "ustring";
         case uptr:        return "uptr";
         case ptr:         return "ptr";
         // single char symbols
@@ -257,11 +255,6 @@ Tokens tokenize(Tokenizer* t) {
          else if (!strcmp(buf.items, "char")) {
             TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = char_, .value = "", .pos = start_pos}));
-            da_clear(&buf);
-         }
-         else if (!strcmp(buf.items, "ustring")) {
-            TokenPos start_pos = { t->pos.line, start};
-            da_append(&tokens, ((Token){.type = ustring, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "uchar")) {

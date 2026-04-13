@@ -113,23 +113,12 @@ static inline bool check_type_char(Symbol* sym, Generator* gen, NodeStmt* stmt) 
 
 static inline bool check_type_string(Symbol* sym, Generator* gen, NodeStmt* stmt) {
    if (stmt->stmt_let->expr->value.term->type != TERM_STRING_LIT) return false;
-   if (!strcmp("string", sym->var_type)) {
+   if (!strcmp("char*", sym->var_type)) {
       if (sym->mut) {
          fprintf(gen->out, "    char* %s = ", sym->ident);
       }
       else {
          fprintf(gen->out, "    const char* %s = ", sym->ident);
-      }
-      gen_expr(gen, stmt->stmt_let->expr);
-      fprintf(gen->out, ";\n");
-      return true;
-   }
-   else if (!strcmp("ustring", sym->var_type)){
-      if (sym->mut) {
-         fprintf(gen->out, "    unsigned char* %s = ", sym->ident);
-      }
-      else {
-         fprintf(gen->out, "    const unsigned char* %s = ", sym->ident);
       }
       gen_expr(gen, stmt->stmt_let->expr);
       fprintf(gen->out, ";\n");
@@ -187,12 +176,11 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
             }
 
             da_append(&gen->table, sym);
-            bool success = check_type_int(&sym, gen, stmt);
-            if (success) return;
-            success = check_type_string(&sym, gen, stmt);
-            if (success) return;
-            success = check_type_char(&sym, gen, stmt);
-            if (success) return;
+
+            if (check_type_int(&sym, gen, stmt)) return;
+            if (check_type_string(&sym, gen, stmt)) return;
+            if (check_type_char(&sym, gen, stmt)) return;
+
             EXIT("Type mismatch of `%s` at %zu:%zu.", stmt->stmt_let->ident.value);
          }
       case STMT_EXIT:

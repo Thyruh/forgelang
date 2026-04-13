@@ -75,7 +75,6 @@ typedef enum {
    bool_,
 
    string,
-   ustring,
 
    TERMINATE
 } TokenType;

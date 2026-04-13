@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
    fclose(out);
    fclose(f);
-   (void)system("cc -oout -Wall -Wextra -pedantic out.c");
+   (void)system("cc -oout out.c");
 
    arena_free(arena);
    free(tokens.items); // Those allocations are quite immovable to an arena cause they depend on da_append, which I dont want to touch for now

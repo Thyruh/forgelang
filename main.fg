@@ -5,6 +5,6 @@ const l:string = "Hello";
 const lu:string = "This is a simple string";
 i = 90/2;
 const usef:u32 = 10;
-println(l);
 println(lu);
+println("Hello, World!");
 exit(n+usef+n+i+j+i-100);

@@ -85,9 +85,7 @@ static inline const char* get_type(Token token) {
       case uptr:
          return "__UINTPTR_TYPE__";
       case string:
-         return "string"; // to change later, placeholder
-      case ustring: // handle this somehow different because of the gcc warnings as there are no ascii signs beyond 127
-         return "ustring"; // this too
+         return "char*"; // to change later, placeholder
       default:
          printf(ANSI_COLOR_RED"[parser]: Unknown type %s at %zu:%zu\n"ANSI_COLOR_RESET, tokentype_repr(token), token.pos.line, token.pos.line_pos+1);
          exit(1);

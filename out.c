@@ -9,7 +9,7 @@ int main(void) {
     const char* lu = "This is a simple string";
     i = 90/2;
     const __UINT32_TYPE__ usef = 10;
-    puts(l);
     puts(lu);
+    puts("Hello, World!");
     return n+usef+n+i+j+i-100;
 }
