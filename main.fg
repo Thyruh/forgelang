@@ -7,7 +7,7 @@ mut l:string  =   "Hello";
 l = "new";
 mut c_h: char='4';
 // this is a comment 
-const lu:i8= 10; const sfe: char "This is a simple string";
+const lu:i8= 10; const sfe: string ="This is a simple string";
 const err_out: u32 = 1030;
 println(sfe);
 exit(lu);

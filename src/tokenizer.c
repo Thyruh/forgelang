@@ -138,6 +138,7 @@ Tokens tokenize(Tokenizer* t) {
    while (t->index < t->length) {
       char ch = peek(t);
       if (ch == 0) return tokens;
+      size_t start = t->pos.line_pos;
 
       if (ch == '\n') {
          consume(t);
@@ -152,7 +153,6 @@ Tokens tokenize(Tokenizer* t) {
       }
 
       if (isalpha(ch) || ch == '_') {
-         size_t start = t->pos.line_pos;
          da_append(&buf, consume(t));
          while (isalnum(peek(t)) || peek(t) == '_') {
             da_append(&buf, consume(t));
@@ -249,7 +249,6 @@ Tokens tokenize(Tokenizer* t) {
       }
 
       if (isdigit(ch)) {
-         size_t start = t->pos.line_pos;
          da_append(&buf, consume(t));
          while (isdigit(peek(t)))
             da_append(&buf, consume(t));
@@ -264,7 +263,6 @@ Tokens tokenize(Tokenizer* t) {
 
       if (ch == '"') { // TODO no closing " case
          consume(t);
-         size_t start = t->pos.line_pos;
          da_append(&buf, consume(t));
          while (peek(t) != '"')
             da_append(&buf, consume(t));
@@ -281,7 +279,6 @@ Tokens tokenize(Tokenizer* t) {
       switch (ch) {
          case 39: // single quote
             {
-               size_t start = t->pos.line_pos;
                TokenPos p = { t->pos.line, start };
                consume(t);
                da_clear(&buf);
@@ -296,7 +293,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '+': 
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = plus, .value = "", .pos = p}));
@@ -304,7 +300,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '-':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = minus, .value = "", .pos = p}));
@@ -312,7 +307,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '*':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = star, .value = "", .pos = p}));
@@ -320,7 +314,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '/':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                if (peek(t) == '/') {
                   consume(t);
@@ -335,7 +328,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '\\':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = bslash, .value = "", .pos = p}));
@@ -343,7 +335,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '{':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = open_brace, .value = "", .pos = p}));
@@ -351,7 +342,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '}':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = close_brace, .value = "", .pos = p}));
@@ -359,7 +349,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '[':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = open_bracket, .value = "", .pos = p}));
@@ -367,7 +356,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case ']':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = close_bracket, .value = "", .pos = p}));
@@ -375,7 +363,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '&':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = ampersand, .value = "", .pos = p}));
@@ -383,7 +370,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case ',':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = comma, .value = "", .pos = p}));
@@ -391,7 +377,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '.':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = dot, .value = "", .pos = p}));
@@ -399,7 +384,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '^':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = caret, .value = "", .pos = p}));
@@ -407,7 +391,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '|':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = pipe, .value = "", .pos = p}));
@@ -415,7 +398,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '!':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = exclam, .value = "", .pos = p}));
@@ -423,7 +405,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '>':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = greater, .value = "", .pos = p}));
@@ -431,7 +412,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '<':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = less, .value = "", .pos = p}));
@@ -439,7 +419,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '`':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = grave, .value = "", .pos = p}));
@@ -447,7 +426,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '~':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = tilda, .value = "", .pos = p}));
@@ -455,7 +433,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '=':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = equals, .value = "", .pos = p}));
@@ -463,7 +440,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case '(':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = open_paren, .value = "", .pos = p}));
@@ -471,7 +447,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case ')':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = close_paren, .value = "", .pos = p}));
@@ -479,7 +454,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case ';':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = semi, .value = "", .pos = p}));
@@ -487,7 +461,6 @@ Tokens tokenize(Tokenizer* t) {
             break;
          case ':':
             {
-               size_t start = t->pos.line_pos;
                consume(t);
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = colon, .value = "", .pos = p}));
