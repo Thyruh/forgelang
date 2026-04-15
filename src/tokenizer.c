@@ -14,6 +14,8 @@ const char* tokentype_str(TokenType t) {
       case close_paren:   return "close_paren";
       case open_brace:    return "open_brace";
       case close_brace:   return "close_brace";
+      case open_bracket:  return "open_bracket";
+      case close_bracket: return "close_bracket";
       case print:         return "print";
       case println:       return "println";
       case write:         return "write";
@@ -45,7 +47,7 @@ const char* tokentype_str(TokenType t) {
    }
 }
 
-const char* tokentype_repr(Token t) {
+const char* token_repr(Token t) {
     switch (t.type) {
         case int_lit:
         case string_lit:
@@ -101,20 +103,11 @@ const char* tokentype_repr(Token t) {
         case exclam:      return "!";
         case greater:     return ">";
         case less:        return "<";
+        case grave:        return "`";
+        case tilda:        return "~";
         case TERMINATE:   return "EOF";
-        default:          return "unknown";
     }
 }
-
-#ifdef DEBUGG
-static inline void debug_tokens(Tokens* tokens) {
-    for (size_t i = 0; i < tokens->size; i++) {
-        Token t = tokens->items[i];
-        printf("[tokenizer]: [%zu] %-15s value = %-20s pos=%zu:%zu\n",
-            i, tokentype_str(t.type), tokentype_repr(t), t.pos.line, t.pos.line_pos+1);
-    }
-}
-#endif
 
 Tokenizer Tokenizer_create(char** src, size_t length, mem_arena* arena) {
    assert(length && "[ERROR]: empty source file");
@@ -145,125 +138,108 @@ Tokens tokenize(Tokenizer* t) {
    while (t->index < t->length) {
       char ch = peek(t);
       if (ch == 0) return tokens;
+
       if (ch == '\n') {
          consume(t);
          t->pos.line++;
          t->pos.line_pos = 0;
          continue;
       }
+
       if (ch == ' ' || ch == '\t' || ch == '\r') {
          consume(t);
          continue;
       }
-      if (isalpha(ch) || ch == '_') { // TODO make this work
+
+      if (isalpha(ch) || ch == '_') {
          size_t start = t->pos.line_pos;
          da_append(&buf, consume(t));
-         while (isalnum(peek(t)) || ch == '_') {
+         while (isalnum(peek(t)) || peek(t) == '_') {
             da_append(&buf, consume(t));
          }
          da_append(&buf, '\0');
+         TokenPos start_pos = { t->pos.line, start};
          if (!strcmp(buf.items, "println")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = println, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "const")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = const_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "mut")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = mut, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "exit")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = exit_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "i8")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = i8_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "i16")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = i16_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "i32")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = i32_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "i64")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = i64_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "u8")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = u8_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "u16")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = u16_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "u32")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = u32_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "u64")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = u64_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "f32")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = f32_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "f64")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = f64_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "ptr")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = ptr, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "uptr")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = uptr, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "bool")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = bool_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "string")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = string, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "char")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = char_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else if (!strcmp(buf.items, "uchar")) {
-            TokenPos start_pos = { t->pos.line, start};
             da_append(&tokens, ((Token){.type = uchar_, .value = "", .pos = start_pos}));
             da_clear(&buf);
          }
          else {
-            TokenPos start_pos = { t->pos.line, start};
             char* name = arena_push_arr(t->arena, char, buf.size);
             memcpy(name, buf.items, buf.size);
             da_append(&tokens, ((Token){.type = ident, .value = name, .pos = start_pos}));
@@ -346,8 +322,135 @@ Tokens tokenize(Tokenizer* t) {
             {
                size_t start = t->pos.line_pos;
                consume(t);
+               if (peek(t) == '/') {
+                  consume(t);
+                  while (peek(t) != '\n') {
+                     consume(t);
+                  }
+                  break;
+               }
                TokenPos p = { t->pos.line, start };
                da_append(&tokens, ((Token){.type = fslash, .value = "", .pos = p}));
+            }
+            break;
+         case '\\':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = bslash, .value = "", .pos = p}));
+            }
+            break;
+         case '{':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = open_brace, .value = "", .pos = p}));
+            }
+            break;
+         case '}':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = close_brace, .value = "", .pos = p}));
+            }
+            break;
+         case '[':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = open_bracket, .value = "", .pos = p}));
+            }
+            break;
+         case ']':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = close_bracket, .value = "", .pos = p}));
+            }
+            break;
+         case '&':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = ampersand, .value = "", .pos = p}));
+            }
+            break;
+         case ',':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = comma, .value = "", .pos = p}));
+            }
+            break;
+         case '.':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = dot, .value = "", .pos = p}));
+            }
+            break;
+         case '^':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = caret, .value = "", .pos = p}));
+            }
+            break;
+         case '|':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = pipe, .value = "", .pos = p}));
+            }
+            break;
+         case '!':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = exclam, .value = "", .pos = p}));
+            }
+            break;
+         case '>':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = greater, .value = "", .pos = p}));
+            }
+            break;
+         case '<':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = less, .value = "", .pos = p}));
+            }
+            break;
+         case '`':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = grave, .value = "", .pos = p}));
+            }
+            break;
+         case '~':
+            {
+               size_t start = t->pos.line_pos;
+               consume(t);
+               TokenPos p = { t->pos.line, start };
+               da_append(&tokens, ((Token){.type = tilda, .value = "", .pos = p}));
             }
             break;
          case '=':
@@ -395,9 +498,6 @@ Tokens tokenize(Tokenizer* t) {
             // exit(1);
       }
    }
-#ifdef DEBUGG
-   debug_tokens(&tokens);
-#endif
    free(buf.items);
    return tokens;
 } // tokenize()

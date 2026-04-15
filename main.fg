@@ -1,10 +1,13 @@
-mut i:i32 = 32;
+mut i:i32 = 33;
 const n:f64 = 9;
-const j:i32 = 10;
-const l:string = "Hello";
-const lu:string = "This is a simple string";
-i = 90/2;
-const usef:u32 = 10;
-println(lu);
-println("Hello, World!");
-exit(n+usef+n+i+j+i-100);
+const j:u64 = 10;
+const s:string = "Hello, World!";
+println(s);
+mut l:string  =   "Hello";
+l = "new";
+mut c_h: char='4';
+// this is a comment 
+const lu:i8= 10; const sfe: char "This is a simple string";
+const err_out: u32 = 1030;
+println(sfe);
+exit(lu);

@@ -6,8 +6,8 @@
 // TODO: symbol table — per-type partitioned dynamic arrays, separate variable and const sections
 typedef struct {
    const char* ident;
-   const char* var_type;
-   TokenType type;
+   Token token;
+   TokenType type; // ident_type
    bool mut;
 } Symbol;
 

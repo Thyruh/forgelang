@@ -28,6 +28,25 @@ int main(int argc, char** argv) {
    Tokenizer tokenizer = Tokenizer_create(&src, size, arena);
    Tokens tokens = tokenize(&tokenizer);
 
+#ifdef DEBUG
+   puts(ANSI_COLOR_MAGENTA"\n```");
+   for (size_t i = 0; i < tokens.size; i++) {
+      const char* s = token_repr(tokens.items[i]);
+      if (tokens.items[i].type == char_lit) {
+         printf("'%s' ", s);
+      }
+      else if (tokens.items[i].type == string_lit) {
+         printf("\"%s\" ", s);
+      }
+      else if (s[0] != ';') {
+         printf("%s ", s);
+      }
+      else
+         puts(";");
+   }
+   puts("```\n"ANSI_COLOR_RESET);
+#endif
+
    Parser parser = Parser_create(&tokens, arena);
    NodeProg prog = parse_prog(&parser);
 

@@ -6,6 +6,47 @@
          (void)system("rm out.c");\
          exit(1);
 
+static inline const char* get_type(Token token) {
+   switch (token.type) {
+      case char_:
+         return "char";
+      case uchar_:
+         return "unsigned char";
+      case i8_:
+         return "__INT8_TYPE__";
+      case i16_:
+         return "__INT16_TYPE__";
+      case i32_:
+         return "__INT32_TYPE__";
+      case i64_:
+         return "__INT64_TYPE__";
+      case u8_:
+         return "__UINT8_TYPE__";
+      case u16_:
+         return "__UINT16_TYPE__";
+      case u32_:
+         return "__UINT32_TYPE__";
+      case u64_:
+         return "__UINT64_TYPE__";
+      case f32_:
+         return "float";
+      case f64_:
+         return "double";
+      case bool_:
+         return "_Bool";
+      case ptr:
+         return "__INTPTR_TYPE__";
+      case uptr:
+         return "__UINTPTR_TYPE__";
+      case string:
+         return "char*"; // to change later, placeholder
+      default:
+         TokenPos pos = token.pos;
+         EXIT("Unknown type %s at %zu:%zu\n", token_repr(token));
+         exit(1);
+   }
+}
+
 // TODO Implement string fatptr backend
 
 static inline void gen_term(Generator* gen, NodeTerm* term) {
@@ -83,76 +124,35 @@ static inline void gen_expr(Generator* gen, NodeExpr* expr) {
    }
 }
 
-// `pos` is for EXIT
-static inline bool check_type_char(Symbol* sym, Generator* gen, NodeStmt* stmt) {
+static inline bool check_type_uchar(Symbol* sym, NodeStmt* stmt) {
    if (stmt->stmt_let->expr->value.term->type != TERM_CHAR_LIT) return false;
-   if (!strcmp("char", sym->var_type)) {
-      if (sym->mut) {
-         fprintf(gen->out, "    char %s = ", sym->ident);
-      }
-      else {
-         fprintf(gen->out, "    const char %s = ", sym->ident);
-      }
-      gen_expr(gen, stmt->stmt_let->expr);
-      fprintf(gen->out, ";\n");
-      return true;
-   }
-   else if (!strcmp("uchar", sym->var_type)) {
-      if (sym->mut) {
-         fprintf(gen->out, "    unsigned char %s = ", sym->ident);
-      }
-      else {
-         fprintf(gen->out, "    const unsigned char %s = ", sym->ident);
-      }
-      gen_expr(gen, stmt->stmt_let->expr);
-      fprintf(gen->out, ";\n");
-      return true;
-   }
-   return false;
-} 
-
-static inline bool check_type_string(Symbol* sym, Generator* gen, NodeStmt* stmt) {
-   if (stmt->stmt_let->expr->value.term->type != TERM_STRING_LIT) return false;
-   if (!strcmp("char*", sym->var_type)) {
-      if (sym->mut) {
-         fprintf(gen->out, "    char* %s = ", sym->ident);
-      }
-      else {
-         fprintf(gen->out, "    const char* %s = ", sym->ident);
-      }
-      gen_expr(gen, stmt->stmt_let->expr);
-      fprintf(gen->out, ";\n");
+   if (uchar_ == sym->token.type) {
       return true;
    }
    return false;
 }
 
-static inline bool check_type_int(Symbol* sym, Generator* gen, NodeStmt* stmt) {
+static inline bool check_type_char(Symbol* sym, NodeStmt* stmt) {
+   if (stmt->stmt_let->expr->value.term->type != TERM_CHAR_LIT) return false;
+   if (char_ == sym->token.type) {
+      return true;
+   }
+   return false;
+} 
+
+static inline bool check_type_string(Symbol* sym, NodeStmt* stmt) {
+   if (stmt->stmt_let->expr->value.term->type != TERM_STRING_LIT) return false;
+   if (string == sym->token.type) {
+      return true;
+   }
+   return false;
+}
+
+static inline bool check_type_int(Symbol* sym, NodeStmt* stmt) {
    if (stmt->stmt_let->expr->value.term->type != TERM_INT_LIT) return false;
-   char* int_types[11] = {
-      "__INT8_TYPE__"  ,
-      "__INT16_TYPE__" ,
-      "__INT32_TYPE__" ,
-      "__INT64_TYPE__" ,
-      "__UINT8_TYPE__" ,
-      "__UINT16_TYPE__",
-      "__UINT64_TYPE__",
-      "__UINT32_TYPE__",
-      "bool",
-      "float",
-      "double",
-   };
-   for (size_t i = 0; i < 11; i++) {
-      if (!strcmp(int_types[i], sym->var_type)) {
-         if (sym->mut) {
-            fprintf(gen->out, "    %s %s = ", stmt->stmt_let->type, sym->ident);
-         }
-         else {
-            fprintf(gen->out, "    const %s %s = ", stmt->stmt_let->type, sym->ident);
-         }
-         gen_expr(gen, stmt->stmt_let->expr);
-         fprintf(gen->out, ";\n");
-         return true;;
+   for (TokenType i = i8_; i <= f64_; i++) { // quite fragile be careful
+      if (i == sym->token.type) {
+         return true;
       }
    }
    return false;
@@ -164,25 +164,65 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
    switch (stmt->type) {
       case STMT_LET:
          {
-            Symbol sym;
-            sym.ident = stmt->stmt_let->ident.value;
-            sym.var_type = stmt->stmt_let->type;
-            sym.type = stmt->stmt_let->ident.type;
-            sym.mut = stmt->stmt_let->mut;
             for (size_t i = 0; i < gen->table.size; i++) {
                if (!strcmp(gen->table.items[i].ident, stmt->stmt_let->ident.value)) {
                   EXIT("Redefinition of `%s` at %zu:%zu. Definition failed.", stmt->stmt_let->ident.value);
                }
             }
 
+            Symbol sym;
+            sym.ident = stmt->stmt_let->ident.value;
+            sym.token = stmt->stmt_let->token;
+            sym.type  = stmt->stmt_let->ident.type;
+            sym.mut   = stmt->stmt_let->mut;
             da_append(&gen->table, sym);
 
-            if (check_type_int(&sym, gen, stmt)) return;
-            if (check_type_string(&sym, gen, stmt)) return;
-            if (check_type_char(&sym, gen, stmt)) return;
+            // Checking the types
+            // TODO Currently I make sure that the type of the variable aligns with the 
+            // assignment value, however I have the TERM tags - which means I should 
+            // probably pattern match them to call the corresponding function
+            if (check_type_string(&sym, stmt)) {
+               if (sym.mut) {
+                  fprintf(gen->out, "    char* %s = ", sym.ident);
+               }
+               else {
+                  fprintf(gen->out, "    const char* %s = ", sym.ident);
+               }
+            }
+            else if (check_type_char(&sym, stmt)) {
+               if (sym.mut) {
+                  fprintf(gen->out, "    char %s = ", sym.ident);
+               }
+               else {
+                  fprintf(gen->out, "    const char %s = ", sym.ident);
+               }
+            }
+            else if (check_type_uchar(&sym, stmt)){
+               if (sym.mut) {
+                  fprintf(gen->out, "    unsigned char %s = ", sym.ident);
+               }
+               else {
+                  fprintf(gen->out, "    const unsigned char %s = ", sym.ident);
+               }
+            }
+            // Perform the most expensive check last (probably negligible)
+            // but also good practice I suppose
+            else if (check_type_int(&sym, stmt)) {
+               if (sym.mut) {
+                  fprintf(gen->out, "    %s %s = ", get_type(stmt->stmt_let->token), sym.ident);
+               }
+               else {
+                  fprintf(gen->out, "    const %s %s = ", get_type(stmt->stmt_let->token), sym.ident);
+               }
+            }
+            else {
+               EXIT("Type mismatch of `%s` at %zu:%zu.", stmt->stmt_let->ident.value);
+            }
 
-            EXIT("Type mismatch of `%s` at %zu:%zu.", stmt->stmt_let->ident.value);
+            gen_expr(gen, stmt->stmt_let->expr);
+            fprintf(gen->out, ";\n");
          }
+         break;
       case STMT_EXIT:
          {
             fprintf(gen->out, "    return ");

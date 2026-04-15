@@ -18,15 +18,16 @@ typedef enum {
    plus,
    minus,
    star,
-   fslash,
-   bslash,
    open_paren,
    close_paren,
+   equals,
+   fslash,
+
+   bslash,
    open_brace,
    close_brace,
    open_bracket,
    close_bracket,
-   equals,
    ampersand,
    comma,
    dot, // Does both dereferences and access
@@ -35,6 +36,8 @@ typedef enum {
    exclam, // Generics symbol
    greater,
    less,
+   tilda,
+   grave,
 
    // functions and keywords
    print,
@@ -56,7 +59,7 @@ typedef enum {
 
    // types
 
-   char_, // for token_len function
+   char_,
    uchar_,
 
    i8_ ,          // __INT8_TYPE__
@@ -114,7 +117,7 @@ typedef struct {
 
 Tokenizer   Tokenizer_create(char** src, size_t length, mem_arena* arena);
 Tokens      tokenize(Tokenizer* t);
-const char* tokentype_repr(Token t);
+const char* token_repr(Token t);
 const char* tokentype_str(TokenType t);
 
 #define DA_INIT_CAP 256

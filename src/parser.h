@@ -87,7 +87,7 @@ typedef struct {
 typedef struct {
    Token ident;
    NodeExpr* expr;
-   const char* type;
+   Token token;
    bool mut;
 } NodeStmtLet;
 
