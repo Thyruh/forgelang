@@ -8,6 +8,7 @@ static const char *src[] = {
     "src/tokenizer.c",
     "src/generator.c",
     "src/parser.c",
+    "src/typechecker.c",
 };
 static const char *obj_path(const char *c_path)
 {

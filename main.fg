@@ -1,13 +1,14 @@
-mut i:i32 = 33;
-const n:f64 = 9;
-const j:u64 = 10;
-const s:string = "Hello, World!";
-println(s);
-mut l:string  =   "Hello";
-l = "new";
-mut c_h: char='4';
-// this is a comment 
-const lu:i8= 10; const sfe: string ="This is a simple string";
-const err_out: u32 = 1030;
-println(sfe);
-exit(lu);
+const nebula:string="This is a simple string";
+mut echo:string="Hello";
+const exit_code:u32=0;
+println(nebula);
+mut glyph:char='4';
+const size:usize = 100;
+size = 10; // TODO: make sure this does not work
+// This is a comment
+const banner:string="Hello, Forgelang!";
+mut bravo:i32 = 10;
+bravo = 17;
+// println(banner); // Comments also work from here
+echo="new";
+exit(0);

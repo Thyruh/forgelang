@@ -1,156 +1,121 @@
 #pragma once
 #ifndef TOKENIZER
 #define TOKENIZER
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #define ARENA_IMPLEMENTATION
 #define ARENA_VOID_RESPONSE
 #define ARENA_REPORT
-#include "./arena.h"
+#include "./common/arena.h"
 
 typedef enum {
-   // symbols
-   semi,
-   colon,
-   plus,
-   minus,
-   star,
-   open_paren,
-   close_paren,
-   equals,
-   fslash,
+  // symbols
+  semi,
+  colon,
+  plus,
+  minus,
+  star,
+  open_paren,
+  close_paren,
+  equals,
+  fslash,
 
-   bslash,
-   open_brace,
-   close_brace,
-   open_bracket,
-   close_bracket,
-   ampersand,
-   comma,
-   dot, // Does both dereferences and access
-   caret,
-   pipe,
-   exclam, // Generics symbol
-   greater,
-   less,
-   tilda,
-   grave,
+  bslash,
+  open_brace,
+  close_brace,
+  open_bracket,
+  close_bracket,
+  ampersand,
+  comma,
+  dot, // Does both dereferences and access
+  caret,
+  pipe,
+  exclam, // Generics symbol
+  greater,
+  less,
+  tilda,
+  grave,
 
-   // functions and keywords
-   print,
-   println,
-   write,
-   writeln,
-   const_,
-   mut,
-   ident,
-   return_,
-   exit_,
+  // functions and keywords
+  print,
+  println,
+  write,
+  writeln,
+  const_,
+  mut,
+  ident,
+  return_,
+  exit_,
 
-   // literals
+  // literals
 
-   int_lit,
-   string_lit,
-   char_lit,
-   func_lit, // for much later
+  int_lit,
+  string_lit,
+  char_lit,
+  func_lit, // for much later
 
-   // types
+  // types
 
-   char_,
-   uchar_,
+  char_,
+  uchar_,
 
-   i8_ ,          // __INT8_TYPE__
-   i16_,          // __INT16_TYPE__
-   i32_,          // __INT32_TYPE__
-   i64_,          // __INT64_TYPE__
-   u8_ ,          // __UINT8_TYPE__
-   u16_,          // __UINT16_TYPE__
-   u32_,          // __UINT32_TYPE__
-   u64_,          // __UINT64_TYPE__
-   f32_,
-   f64_,
-   uptr,
-   ptr,
+  i8_,  // __INT8_TYPE__
+  i16_, // __INT16_TYPE__
+  i32_, // __INT32_TYPE__
+  i64_, // __INT64_TYPE__
+  u8_,  // __UINT8_TYPE__
+  u16_, // __UINT16_TYPE__
+  u32_, // __UINT32_TYPE__
+  u64_, // __UINT64_TYPE__
+  usize,
+  f32_,
+  f64_,
+  uptr,
+  ptr,
 
-   bool_,
+  bool_,
 
-   string,
+  string,
 
-   TERMINATE
+  TERMINATE
 } TokenType;
 
 typedef struct {
-   char* items;
-   size_t size;
-   size_t capacity;
+  char* items;
+  size_t size;
+  size_t capacity;
 } Buf;
 
 typedef struct {
-   size_t line;
-   size_t line_pos;
+  size_t line;
+  size_t line_pos;
 } TokenPos;
 
 typedef struct {
-   TokenType type;
-   TokenPos pos;
-   const char* value;
+  TokenType type;
+  TokenPos pos;
+  const char* value;
 } Token;
 
 typedef struct {
-   Token* items;
-   size_t size;
-   size_t capacity;
+  Token* items;
+  size_t size;
+  size_t capacity;
 } Tokens;
 
 typedef struct {
-   const char* src;
-   size_t length;
+  const char* src;
+  size_t length;
 
-   size_t index;
-   TokenPos pos;
+  size_t index;
+  TokenPos pos;
 
-   mem_arena* arena;
+  mem_arena* arena;
 } Tokenizer;
 
-Tokenizer   Tokenizer_create(char** src, size_t length, mem_arena* arena);
-Tokens      tokenize(Tokenizer* t);
-const char* token_repr(Token t);
-const char* tokentype_str(TokenType t);
-
-#define DA_INIT_CAP 256
-#define da_clear(da) \
-    do { \
-        memset((da)->items, 0, (da)->size * sizeof(*(da)->items)); \
-        (da)->size = 0; \
-    } while(0)
-   
-
-#define da_append(da, item)                                                          \
-   do {                                                                             \
-      if ((da)->size >= (da)->capacity) {                                         \
-         (da)->capacity = (da)->capacity == 0 ? DA_INIT_CAP : (da)->capacity*2;   \
-         (da)->items = realloc((da)->items, (da)->capacity*sizeof(*(da)->items)); \
-         assert((da)->items != NULL && "Buy more RAM lol");                       \
-      }                                                                            \
-      (da)->items[(da)->size++] = (item);                                         \
-   } while (0)
-
-#define da_append_many(da, new_items, new_items_size)                                      \
-   do {                                                                                    \
-      if ((da)->size + new_items_count > (da)->capacity) {                               \
-         if ((da)->capacity == 0) {                                                      \
-            (da)->capacity = DA_INIT_CAP;                                               \
-         }                                                                               \
-         while ((da)->size + new_items_count > (da)->capacity) {                        \
-            (da)->capacity *= 2;                                                        \
-         }                                                                               \
-         (da)->items = realloc((da)->items, (da)->capacity*sizeof(*(da)->items));        \
-         assert((da)->items != NULL && "Buy more RAM lol");                              \
-      }                                                                                   \
-      memcpy((da)->items + (da)->size, new_items, new_items_count*sizeof(*(da)->items)); \
-      (da)->size += new_items_count;                                                     \
-   } while (0)
+Tokenizer Tokenizer_create(char** src, size_t length, mem_arena* arena);
+Tokens tokenize(Tokenizer* tokenizer);
 #endif // TOKENIZER
