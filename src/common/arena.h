@@ -1,10 +1,10 @@
 #pragma once
-#ifndef ARENA
-#define ARENA
+#ifndef ARENA_H
+#define ARENA_H
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../include/inttypes.h"
+#include "inttypes.h"
 
 #define KiB(n) ((u64)n << 10)
 #define MiB(n) ((u64)n << 20)
@@ -62,13 +62,13 @@ void arena_free(mem_arena* arena) {
 #endif
 
 #ifdef ARENA_REPORT
-   printf("[arena.h]: Used (no header): %lu\n",
+   printf("[arena.h]: Used (no header): %luB\n",
          arena->pos - ARENA_BASE_POS);
 
-   printf("[arena.h]: Used (total): %lu\n",
+   printf("[arena.h]: Used (total): %luB\n",
          arena->pos);
 
-   printf("[arena.h]: Capacity: %lu\n",
+   printf("[arena.h]: Capacity: %luB\n",
          arena->capacity);
 
    printf("[arena.h]: Ratio (%%): %lu/100%%\n",
@@ -133,4 +133,4 @@ void arena_clear(mem_arena* arena) {
 }
 
 #endif // ARENA_IMPLEMENTATION
-#endif // ARENA
+#endif // ARENA_H
