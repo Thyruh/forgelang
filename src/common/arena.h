@@ -1,3 +1,4 @@
+// Do not use the dynamic resize, it invalidates all the previous pointers
 #pragma once
 #ifndef ARENA_H
 #define ARENA_H
@@ -91,6 +92,7 @@ void* m_arena_push(mem_arena* arena, u64 size, bool dn) {
          printf("[DEV_MESSAGE]: Resized the arena for the new allocation, ");
          printf("consider creating another arena or initializing with more memory.\n");
 #endif
+         assert(false && "Dynamic resize of an arena is not supported");
          char* old_pos = (void*)arena;
          arena = (mem_arena*)realloc(arena, arena->capacity+new_pos-arena->capacity); // abstract into another function
          arena->offset = old_pos - (char*)arena;

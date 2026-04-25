@@ -3,7 +3,7 @@
 
 set -e
 
-total=$(wc -l **/*.c **/*.h | tail -n 1 | awk '{print $1}')
+total=$(wc -l **/*.c **/*.h **/*.fg | tail -n 1 | awk '{print $1}')
 nob=$(wc -l nob.h | awk '{print $1}')
 
 echo $((total - nob))

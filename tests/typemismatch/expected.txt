@@ -1,0 +1,23 @@
+[35m
+```
+mut x : i32 = 10 ;
+mut name : string = "forge" ;
+mut ch : char = 'a' ;
+x = "hello" ;
+name = 42 ;
+ch = name ;
+x = ch ;
+exit ( name ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[31m[typechecker]: Expected integer type at line 4 in:
+[0m	[33mx = "hello" ;[0m
+[31m[typechecker]: Expected string type at line 5 in:
+[0m	[33mname = 42 ;[0m
+[31m[typechecker]: Expected char type at line 6 in:
+[0m	[33mch = name ;[0m
+[31m[typechecker]: Expected integer type at line 7 in:
+[0m	[33mx = ch ;[0m
+[31m[typechecker]: Exit expects integer expression at line 8 in:
+[0m	[33mexit ( name ) ;[0m

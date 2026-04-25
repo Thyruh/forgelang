@@ -1,0 +1,27 @@
+[35m
+```
+const x : i32 = 10 ;
+mut name : string = "forge" ;
+const ch : char = 'a' ;
+x = "hello" ;
+name = 42 ;
+ch = name ;
+println ( x ) ;
+exit ( name ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[31m[typechecker]: Attempting to change an immutable variable at line 4 in:
+[0m	[33mx = "hello" ;[0m
+[31m[typechecker]: Expected integer type at line 4 in:
+[0m	[33mx = "hello" ;[0m
+[31m[typechecker]: Expected string type at line 5 in:
+[0m	[33mname = 42 ;[0m
+[31m[typechecker]: Attempting to change an immutable variable at line 6 in:
+[0m	[33mch = name ;[0m
+[31m[typechecker]: Expected char type at line 6 in:
+[0m	[33mch = name ;[0m
+[31m[typechecker]: println expects string expression at line 7 in:
+[0m	[33mprintln ( x ) ;[0m
+[31m[typechecker]: Exit expects integer expression at line 8 in:
+[0m	[33mexit ( name ) ;[0m

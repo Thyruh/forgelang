@@ -1,0 +1,15 @@
+[35m
+```
+const x : i32 = 10 ;
+mut name : string = "forge" ;
+mut ch : char = 'a' ;
+println ( name ) ;
+exit ( x ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[32m[typechecker]: Semantic analysis finished successfully.
+[0m[arena.h]: Used (no header): 712B
+[arena.h]: Used (total): 736B
+[arena.h]: Capacity: 4194304B
+[arena.h]: Ratio (%): 0/100%

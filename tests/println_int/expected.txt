@@ -1,0 +1,10 @@
+[35m
+```
+const x : i32 = 10 ;
+println ( x ) ;
+exit ( x ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[31m[typechecker]: println expects string expression at line 2 in:
+[0m	[33mprintln ( x ) ;[0m

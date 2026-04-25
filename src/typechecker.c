@@ -49,6 +49,7 @@ static inline NodeExpr* stmt_expr(NodeStmt* stmt) {
   return NULL;
 }
 
+
 /// Checks if the given ident exists inside the symbol table.
 /// Returns the index `i` of the symbol inside the symbol table on success
 /// Returns SIZE_MAX on failure
@@ -59,6 +60,136 @@ static inline size_t ident_exists(SymbolTable* table, Token token) {
     }
   }
   return SIZE_MAX;
+}
+
+static inline TokenType term_type(SymbolTable* table, NodeTerm* term) {
+  switch (term->type) {
+  case TERM_INT_LIT:    return i32_;
+  case TERM_STRING_LIT: return string;
+  case TERM_CHAR_LIT:   return char_;
+  case TERM_IDENT: {
+    size_t i = ident_exists(table, term->value.ident->ident);
+    if (i == SIZE_MAX) return TERMINATE;
+    return table->items[i].type;
+  }
+  }
+  return TERMINATE;
+}
+
+
+/// Checks whether a term satisfies a type predicate.
+/// Handles undefined ident (TERMINATE) case internally.
+/// Pushes an error if the type check fails.
+///
+/// Parameters:
+///   errors     - the error stack to push into
+///   table      - symbol table for ident lookups
+///   term       - the term to check
+///   type_check - predicate function (is_numeric, is_string_type, is_char_type)
+///   code       - error code to use on failure
+///   msg        - error message to use on failure
+static inline void check_expr_type(
+    ErrorStack* errors,
+    SymbolTable* table,
+    NodeTerm* term,
+    bool (*type_check)(TokenType),
+    ErrorCode code,
+    const char* msg) {
+  TokenType tt = term_type(table, term);
+  TokenPos pos;
+  switch (term->type) {
+  case TERM_INT_LIT:    pos = term->value.int_lit->int_lit.pos; break;
+  case TERM_STRING_LIT: pos = term->value.string_lit->string_lit.pos; break;
+  case TERM_CHAR_LIT:   pos = term->value.char_lit->char_lit.pos; break;
+  case TERM_IDENT:      pos = term->value.ident->ident.pos; break;
+  default:              pos = (TokenPos){0}; break;
+  }
+  if (tt == TERMINATE) {
+    Error e = {
+      .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
+      .trace = {0},
+      .pos = pos
+    };
+    snprintf(e.message, sizeof(e.message), "Unknown identifier");
+    da_append(errors, e);
+    return;
+  }
+  if (type_check(tt)) return;
+  Error e = {
+    .code = code,
+    .trace = {0},
+    .pos = pos
+  };
+  snprintf(e.message, sizeof(e.message), "%s", msg);
+  da_append(errors, e);
+}
+
+
+/// Checks whether an assignment is valid given the lhs and rhs types.
+/// Pushes errors into the error stack on failure, returns void on success.
+///
+/// Parameters:
+///   errors     - the error stack to push into
+///   lhs_token  - the token of the variable being assigned to (for position in error reporting)
+///   lhs_type   - the declared type of the lhs variable (from symbol table or stmt->stmt_let->type)
+///   rhs_type   - the type of the rhs expression (from term_type())
+///   check_mut  - whether to check immutability (true for STMT_ASSIGN, false for STMT_LET)
+///   is_mut     - whether the lhs variable is mutable (from symbol table, ignored if check_mut=false)
+///
+/// Use cases:
+///   STMT_LET:    check_assignment_compat(errors, ident, stmt->stmt_let->type, rhs, false, false)
+///   STMT_ASSIGN: check_assignment_compat(errors, ident, table->items[i].type, rhs, true, table->items[i].mut)
+///
+/// Type compatibility rules:
+///   numeric  <- numeric  : ok
+///   string   <- string   : ok
+///   char     <- char     : ok
+///   anything else        : type mismatch error, message driven by lhs type category
+static inline void check_assignment_compat(
+    ErrorStack* errors,
+    Token lhs_token,
+    TokenType lhs_type,
+    TokenType rhs_type,
+    bool check_mut,
+    bool is_mut) {
+  if (check_mut && !is_mut) {
+    Error e = {
+      .code = ERROR_TYPE_CONST_REASSIGNMENT,
+      .trace = {0},
+      .pos = lhs_token.pos
+    };
+    snprintf(e.message, sizeof(e.message), "Attempting to change an immutable variable");
+    da_append(errors, e);
+  }
+  if (is_numeric(lhs_type) && is_numeric(rhs_type)) return;
+  if (is_string_type(lhs_type) && is_string_type(rhs_type)) return;
+  if (is_char_type(lhs_type) && is_char_type(rhs_type)) return;
+
+  ErrorCode code;
+  const char* msg;
+  if (is_numeric(lhs_type)) {
+    code = ERROR_TYPE_EXPECTED_INT;
+    msg = "Expected integer type";
+  }
+  else if (is_string_type(lhs_type)) {
+    code = ERROR_TYPE_EXPECTED_STRING;
+    msg = "Expected string type";
+  }
+  else if (is_char_type(lhs_type)) {
+    code = ERROR_TYPE_EXPECTED_CHAR;
+    msg = "Expected char type";
+  }
+  else {
+    code = ERROR_TYPE_TYPE_MISMATCH;
+    msg = "Type mismatch";
+  }
+  Error e = {
+    .code = code,
+    .trace = {0},
+    .pos = lhs_token.pos
+  };
+  snprintf(e.message, sizeof(e.message), "%s", msg);
+  da_append(errors, e);
 }
 
 // TODO recursive expr check
@@ -74,382 +205,42 @@ static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack
   switch (stmt->type) {
   case STMT_EXIT: 
     {
-      switch (stmt->stmt_exit->expr->value.term->type) {
-      case TERM_INT_LIT: 
-        {
-          return;
-        } break;
-      case TERM_IDENT:
-        {
-          Token ident = stmt->stmt_exit->expr->value.term->value.ident->ident;
-          size_t i = ident_exists(table, ident);
-          if (i == SIZE_MAX) {
-            Error e = {
-              .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
-              .message = "The identifier does not exist",
-              .trace = {0},
-              .pos = ident.pos
-            };
-            da_append(errors, e);
-            return; // Can immediately return, cause there is nothing else to check in this statement
-          }
-          if (is_numeric(table->items[i].type)) return;
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_INT,
-            .message = "Exit expects integer expression",
-            .trace = {0},
-            .pos = ident.pos
-          };
-          da_append(errors, e);
-        } break;
-      case TERM_STRING_LIT:
-        {
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_INT,
-            .message = "Exit expects integer expression",
-            .trace = {0},
-            .pos = stmt->stmt_exit->expr->value.term->value.string_lit->string_lit.pos
-          };
-          da_append(errors, e);
-        } break;
-      case TERM_CHAR_LIT:
-        {
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_INT,
-            .message = "Exit expects integer expression",
-            .trace = {0},
-            .pos = stmt->stmt_exit->expr->value.term->value.string_lit->string_lit.pos
-          };
-          da_append(errors, e);
-        } break;
-      }    // switch term.type
-    } break; // case STMT_EXIT
-  case STMT_LET: 
-    {
-      switch (stmt->stmt_let->expr->value.term->type) { // rhs cases
-      case TERM_INT_LIT: 
-        {
-          // The check here is purely to find the correct symbol table entry
-          size_t i = ident_exists(table, stmt->stmt_let->ident);
-          TokenType tt = table->items[i].type;
-          if (is_numeric(tt)) return;
+      check_expr_type(errors, table,
+          stmt->stmt_exit->expr->value.term,
+          is_numeric, ERROR_TYPE_EXPECTED_INT,
+          "Exit expects integer expression");
+    } break;
 
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_INT,
-            .message = "Let expects integer type",
-            .trace = {0},
-            .pos = stmt->stmt_let->ident.pos
-          };
-          da_append(errors, e);
-
-        } break;
-      case TERM_STRING_LIT: 
-        {
-          size_t i = ident_exists(table, stmt->stmt_let->ident);
-          TokenType tt = table->items[i].type;
-          if (is_string_type(tt)) return;
-
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_STRING,
-            .message = "Let expects string type",
-            .trace = {0},
-            .pos = stmt->stmt_let->ident.pos
-          };
-          da_append(errors, e);
-        } break;
-      case TERM_CHAR_LIT: 
-        {
-          size_t i = ident_exists(table, stmt->stmt_let->ident);
-          TokenType tt = table->items[i].type;
-          if (is_char_type(tt)) return;
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_CHAR,
-            .message = "Let expects char type",
-            .trace = {0},
-            .pos = stmt->stmt_let->ident.pos
-          };
-          da_append(errors, e);
-        } break;
-      case TERM_IDENT:
-        {
-          Token ident = stmt->stmt_let->expr->value.term->value.ident->ident;
-          size_t i = ident_exists(table, ident);
-          if (i == SIZE_MAX) {
-            Error e = {
-              .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
-              .message = "The identifier does not exist",
-              .trace = {0},
-              .pos = ident.pos
-            };
-            da_append(errors, e);
-            return;
-          }
-          TokenType tt = table->items[i].type;
-          if (is_numeric(tt) && is_numeric(stmt->stmt_let->type)) {
-            return;
-          }
-          else {
-            Error e = {
-              .code = ERROR_TYPE_EXPECTED_INT,
-              .message = "Let expects integer type",
-              .trace = {0},
-              .pos = ident.pos
-            };
-            da_append(errors, e);
-          }
-
-          if (is_string_type(tt) && is_string_type(stmt->stmt_let->type)) {
-            return;
-          }
-          else { // this is unnecessary
-            Error e = {
-              .code = ERROR_TYPE_EXPECTED_STRING,
-              .message = "Let expects string type",
-              .trace = {0},
-              .pos = ident.pos
-            };
-            da_append(errors, e);
-          }
-
-          if (is_char_type(tt) && is_char_type(stmt->stmt_let->type)) {
-            return;
-          }
-          else {
-            Error e = {
-              .code = ERROR_TYPE_EXPECTED_CHAR,
-              .message = "Let expects char type",
-              .trace = {0},
-              .pos = ident.pos
-            };
-            da_append(errors, e);
-          }
-        } break;
-      } // switch term.type
-    } break; // case STMT_LET
   case STMT_PRINTLN: 
     {
-      switch (stmt->stmt_print->expr->value.term->type) {
-      case TERM_STRING_LIT: 
-        {
-          return;
-        } break;
-      case TERM_IDENT:
-        {
-          Token ident = stmt->stmt_print->expr->value.term->value.ident->ident;
-          size_t i = ident_exists(table, ident);
-          if (i == SIZE_MAX) {
-            Error e = {
-              .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
-              .message = "The identifier does not exist",
-              .trace = {0},
-              .pos = ident.pos
-            };
-            da_append(errors, e);
-            return; // Can immediately return, cause there is nothing else to check in this statement
-          }
-          if (is_string_type(table->items[i].type)) return;
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_INT,
-            .message = "Statement println expects string expression",
-            .trace = {0},
-            .pos = ident.pos
-          };
-          da_append(errors, e);
-        } break;
-      case TERM_INT_LIT:
-        {
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_INT,
-            .message = "println expects string expression",
-            .trace = {0},
-            .pos = stmt->stmt_print->expr->value.term->value.int_lit->int_lit.pos
-          };
-          da_append(errors, e);
-        } break;
-      case TERM_CHAR_LIT:
-        {
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_INT,
-            .message = "println expects string expression",
-            .trace = {0},
-            .pos = stmt->stmt_print->expr->value.term->value.char_lit->char_lit.pos
-          };
-          da_append(errors, e);
-        } break;
-      } // switch term.type
-    } break; // case STMT_PRINTLN
+      check_expr_type(errors, table,
+          stmt->stmt_print->expr->value.term,
+          is_string_type, ERROR_TYPE_EXPECTED_STRING,
+          "println expects string expression");
+    } break;
+  case STMT_LET: 
+    {
+      TokenType rhs = term_type(table, stmt->stmt_let->expr->value.term);
+      check_assignment_compat(errors, stmt->stmt_let->ident,
+          stmt->stmt_let->type, rhs, false, false);
+    } break;
   case STMT_ASSIGN: 
     {
-      switch (stmt->stmt_assign->expr->value.term->type) { // rhs cases
-      case TERM_INT_LIT: 
-        {
-          size_t i = ident_exists(table, stmt->stmt_assign->ident);
-          if (i == SIZE_MAX) {
-            Error e = {
-              .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
-              .message = "The identifier does not exist",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-            return;
-          }
-          TokenType tt = table->items[i].type;
-          if (!table->items[i].mut) {
-            // TODO: Use snprintf for message to populate it with formatted strings
-            Error e = {
-              .code = ERROR_TYPE_CONST_REASSIGNMENT,
-              .message = "Attempting to change an immutable variable",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-          }
-
-          if (is_numeric(tt)) return;
-
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_INT,
-            .message = "Assignment expects integer type",
-            .trace = {0},
-            .pos = stmt->stmt_assign->ident.pos
-          };
-          da_append(errors, e);
-
-        } break;
-      case TERM_STRING_LIT: 
-        {
-          size_t i = ident_exists(table, stmt->stmt_assign->ident);
-          if (i == SIZE_MAX) {
-            Error e = {
-              .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
-              .message = "The identifier does not exist",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-            return;
-          }
-          TokenType tt = table->items[i].type;
-          if (!table->items[i].mut) {
-            Error e = {
-              .code = ERROR_TYPE_CONST_REASSIGNMENT,
-              .message = "Attempting to change an immutable variable",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-          }
-
-          if (is_string_type(tt)) return;
-
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_STRING,
-            .message = "Assignment expects string type",
-            .trace = {0},
-            .pos = stmt->stmt_assign->ident.pos
-          };
-          da_append(errors, e);
-        } break;
-      case TERM_CHAR_LIT: 
-        {
-          size_t i = ident_exists(table, stmt->stmt_assign->ident);
-          if (i == SIZE_MAX) {
-            Error e = {
-              .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
-              .message = "The identifier does not exist",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-            return;
-          }
-          TokenType tt = table->items[i].type;
-          if (!table->items[i].mut) {
-            Error e = {
-              .code = ERROR_TYPE_CONST_REASSIGNMENT,
-              .message = "Attempting to change an immutable variable",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-          }
-
-          if (is_char_type(tt)) return;
-
-          Error e = {
-            .code = ERROR_TYPE_EXPECTED_CHAR,
-            .message = "Assignment expects char type",
-            .trace = {0},
-            .pos = stmt->stmt_assign->ident.pos
-          };
-          da_append(errors, e);
-        } break;
-      case TERM_IDENT:
-        {
-          Token ident = stmt->stmt_assign->expr->value.term->value.ident->ident;
-          size_t i = ident_exists(table, ident);
-          if (i == SIZE_MAX) {
-            Error e = {
-              .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
-              .message = "The identifier does not exist",
-              .trace = {0},
-              .pos = ident.pos
-            };
-            da_append(errors, e);
-            return;
-          }
-          if (!table->items[i].mut) {
-            Error e = {
-              .code = ERROR_TYPE_CONST_REASSIGNMENT,
-              .message = "Attempting to change an immutable variable",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-          }
-          TokenType tt = table->items[i].type;
-          if (is_numeric(tt) && is_numeric(stmt->stmt_let->type)) {
-            return;
-          }
-          else {
-            Error e = {
-              .code = ERROR_TYPE_EXPECTED_INT,
-              .message = "Assignment expects integer type",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-          }
-
-          if (is_string_type(tt) && is_string_type(stmt->stmt_assign->ident.type)) {
-            return;
-          }
-          else {
-            Error e = {
-              .code = ERROR_TYPE_EXPECTED_STRING,
-              .message = "Assignment expects string type",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-          }
-
-          if (is_char_type(tt) && is_char_type(stmt->stmt_assign->ident.type)) {
-            return;
-          }
-          else {
-            Error e = {
-              .code = ERROR_TYPE_EXPECTED_CHAR,
-              .message = "Assignment expects char type",
-              .trace = {0},
-              .pos = stmt->stmt_assign->ident.pos
-            };
-            da_append(errors, e);
-          }
-        } break;
-      } // switch term.type
-    } break; // case STMT_ASSIGN
+      size_t i = ident_exists(table, stmt->stmt_assign->ident);
+      if (i == SIZE_MAX) {
+        Error e = {
+          .code = ERROR_TYPE_UNDEFINED_IDENTIFIER,
+          .message = "The identifier does not exist",
+          .trace = {0},
+          .pos = stmt->stmt_assign->ident.pos
+        };
+        da_append(errors, e);
+        break;
+      }
+      TokenType rhs = term_type(table, stmt->stmt_assign->expr->value.term);
+      check_assignment_compat(errors, stmt->stmt_assign->ident,
+          table->items[i].type, rhs, true, table->items[i].mut);
+    } break;
   } // switch stmt.type
 } // typecheck_stmt()
 

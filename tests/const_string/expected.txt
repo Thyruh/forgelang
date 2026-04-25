@@ -1,0 +1,10 @@
+[35m
+```
+const name : string = "hello" ;
+name = "world" ;
+exit ( 0 ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[31m[typechecker]: Attempting to change an immutable variable at line 2 in:
+[0m	[33mname = "world" ;[0m

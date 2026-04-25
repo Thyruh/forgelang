@@ -1,0 +1,9 @@
+[35m
+```
+const msg : string = "bye" ;
+exit ( msg ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[31m[typechecker]: Exit expects integer expression at line 2 in:
+[0m	[33mexit ( msg ) ;[0m

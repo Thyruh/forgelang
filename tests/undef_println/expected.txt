@@ -1,0 +1,8 @@
+[35m
+```
+println ( x ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[31m[typechecker]: Unknown identifier at line 1 in:
+[0m	[33mprintln ( x ) ;[0m

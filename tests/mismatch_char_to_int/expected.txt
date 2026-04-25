@@ -1,0 +1,10 @@
+[35m
+```
+mut x : i32 = 10 ;
+x = 'a' ;
+exit ( x ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[31m[typechecker]: Expected integer type at line 2 in:
+[0m	[33mx = 'a' ;[0m

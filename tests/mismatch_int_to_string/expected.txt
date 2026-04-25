@@ -1,0 +1,10 @@
+[35m
+```
+mut name : string = "hello" ;
+name = 42 ;
+exit ( 0 ) ;
+```
+[0m
+[32m[lexer]: Backend pipeline completed successfully.[0m
+[31m[typechecker]: Expected string type at line 2 in:
+[0m	[33mname = 42 ;[0m
