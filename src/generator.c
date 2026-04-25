@@ -75,7 +75,6 @@ static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
   switch (stmt->type) {
   case STMT_LET: 
     {
-      // TODO make sure const actually emits const
       fprintf(gen->out, "    %s %s = ", get_type(stmt->stmt_let->type), stmt->stmt_let->ident.value);
       gen_expr(gen, stmt->stmt_let->expr);
       fprintf(gen->out, ";\n");

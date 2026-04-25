@@ -87,7 +87,6 @@ static inline void symbol_table_append(SymbolTable* table, const char* ident,
 
 static inline NodeTerm* parse_term(Parser* p) {
   NodeTerm* term = arena_push(p->arena, NodeTerm);
-  printf("p->index == %zu\n", p->index+1);
   if (peek(p, 0).type == int_lit) {
     NodeTermIntLit* term_int_lit = arena_push(p->arena, NodeTermIntLit);
     term_int_lit->int_lit = consume(p);

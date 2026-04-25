@@ -54,7 +54,9 @@ typedef enum {
   ERROR_TYPE_GENERIC_RESOLUTION_FAILURE,
 
   ERROR_TYPE_INVALID_INITIALIZER,
-  ERROR_TYPE_INITIALIZER_TYPE_MISMATCH
+  ERROR_TYPE_INITIALIZER_TYPE_MISMATCH,
+
+  ERROR_NO_ERROR // for success return types
 } ErrorCode;
 
 typedef struct {
@@ -73,6 +75,7 @@ typedef struct {
     ErrorCode code;
     Trace trace;
     char message[128];
+    TokenPos pos;
 } Error;
 
 typedef struct {

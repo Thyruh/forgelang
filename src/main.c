@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 
   fclose(out);
   fclose(f);
-  (void)system("cc -oout out.c");
+  (void)system("cc -O3 -oout out.c");
 
   arena_free(arena);
   free(table.items);
