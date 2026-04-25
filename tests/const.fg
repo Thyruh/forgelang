@@ -1,0 +1,7 @@
+const x:i32=10;
+const name:string="forge";
+const ch:char='a';
+x=99;
+name="other";
+ch='z';
+exit(x);
