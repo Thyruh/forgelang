@@ -9,7 +9,6 @@
 #include "./typechecker.h"
 
 // TODO: argc check — if source file doesn't exist fopen returns NULL and fseek segfaults
-// TODO The errors are really nice, but recovery is even nicer
 // TODO: --loose flag — disable full move/borrow checking
 // TODO: --freestanding flag — strip all libc and forgelang std dependencies
 
@@ -61,8 +60,8 @@ int main(int argc, char** argv) {
   NodeProg prog = parse_prog(&parser);
 
   typecheck_prog(&table, &prog, &tokens);
-  FILE* out = fopen("out.c", "w+");
 
+  FILE* out = fopen("out.c", "w+");
   Generator gen = Generator_create(&prog, out);
   gen_prog(&gen);
 
