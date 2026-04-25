@@ -9,7 +9,8 @@ int main(void) {
     char glyph = '4';
     size_t size = 100;
     char* banner = "Hello, Forgelang!";
+    char* new = banner+"wdw";
     size_t bravo = 69;
-    bravo = 17+1;
+    bravo = 19+21;
     return exit_code;
 }
