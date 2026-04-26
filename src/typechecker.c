@@ -259,7 +259,8 @@ static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack
             .pos = stmt->stmt_assign->ident.pos
           };
           da_append(errors, e);
-      } break;
+          break;
+        } 
 
         TokenType rhs = typecheck_expr(table, stmt->stmt_assign->expr, errors);
 

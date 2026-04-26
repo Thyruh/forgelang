@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 
   (void)system("rm out.c out");
 
-  mem_arena* arena = arena_create(MiB(4));
+  mem_arena* arena = arena_create(KiB(4));
   FILE* f = fopen(argv[argc - 1], "r");
   fseek(f, 0, SEEK_END);
   u64 size = (u64)ftell(f);
