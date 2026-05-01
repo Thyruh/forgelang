@@ -2,10 +2,6 @@
 #ifndef TOKENHANDLER_H
 #define TOKENHANDLER_H
 #include "../tokenizer.h"
-#define EXIT(s, a)\
-  printf(ANSI_COLOR_RED "[token_handler]: " s "\n" ANSI_COLOR_RESET, a, pos.line, pos.line_pos+1);\
-  (void)system("rm out.c");\
-  exit(1);
 
 const char* token_repr(Token t);
 const char* get_type(TokenType type);

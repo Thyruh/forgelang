@@ -6,7 +6,7 @@ mut glyph:char='4';
 mut size:usize=100;
 size = 10;
 const banner:string="Hello, Forgelang!";
-mut new:string = banner+"wdw";
+mut new:string = banner;
 new = "Hello, World!";
 println(new);
 mut bravo:usize=69;

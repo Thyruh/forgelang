@@ -249,7 +249,6 @@ const char* get_type(TokenType type) {
 }
 
 Tokenizer Tokenizer_create(char** src, size_t length, mem_arena* arena) {
-  assert(length && "[ERROR]: empty source file");
   Tokenizer t = {0};
   t.length = length;
   t.src = *src;

@@ -36,19 +36,55 @@ void print_tokens_as_strings(Tokens* tokens) {
 }
 #endif
 
-int main(int argc, char** argv) {
-  if (argc == 1)
-    return 1; // TODO the default dialog explaining how to use the compiler
-
-  (void)system("rm out.c out");
-
-  mem_arena* arena = arena_create(KiB(4));
-  FILE* f = fopen(argv[argc - 1], "r");
+char* read_source(char* filename, u64* m_size, mem_arena* arena) {
+  FILE* f = fopen(filename, "r");
+  if (!f) {
+    printf(ANSI_COLOR_RED"Error: No file or directory `%s` found.\n"ANSI_COLOR_RESET, filename);
+    goto exit;
+  }
   fseek(f, 0, SEEK_END);
   u64 size = (u64)ftell(f);
+  if (size == 0) {
+    printf(ANSI_COLOR_RED"Error: The translation unit `%s` is empty\n"ANSI_COLOR_RESET, filename);
+    goto exit;
+  }
   rewind(f);
   char* src = arena_push_arr(arena, char, size);
-  (void)fread(src, 1, size, f);
+  size_t size_check = fread(src, 1, size, f);
+  if (size_check != size) {
+    if (ferror(f)) {
+      printf(ANSI_COLOR_RED"Error reading file"ANSI_COLOR_RESET);
+      goto exit;
+    } else if (feof(f)) {
+      printf(ANSI_COLOR_RED"Error: File ended unexpectedly (size changed?)\n"ANSI_COLOR_RESET);
+      goto exit;
+    } else {
+      printf(ANSI_COLOR_RED"Error: Unknown fread issue\n"ANSI_COLOR_RESET);
+      goto exit;
+    }
+  }
+  *m_size = size;
+  fclose(f);
+  return src;
+exit:
+  arena_free(arena);
+  exit(1);
+}
+
+int main(int argc, char** argv) {
+  if (argc == 1) {
+    printf(ANSI_COLOR_RED"Error: At least one argument required\n");
+    printf("\tCorrect syntax: `forge <filename>.fg`.\n"ANSI_COLOR_RESET);
+    return 1;
+  }
+
+  remove("out.c");
+  remove("out");
+
+  mem_arena* arena = arena_create(KiB(4));
+
+  u64 size;
+  char* src = read_source(argv[1], &size, arena);
 
   Tokenizer tokenizer = Tokenizer_create(&src, size, arena);
   Tokens tokens = tokenize(&tokenizer);
@@ -66,7 +102,6 @@ int main(int argc, char** argv) {
   gen_prog(&gen);
 
   fclose(out);
-  fclose(f);
   (void)system("cc -O3 -oout out.c");
 
   arena_free(arena);
