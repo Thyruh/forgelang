@@ -11,5 +11,5 @@ exit ( x ) ;
 [32m[typechecker]: Semantic analysis finished successfully.
 [0m[arena.h]: Used (no header): 712B
 [arena.h]: Used (total): 736B
-[arena.h]: Capacity: 4194304B
-[arena.h]: Ratio (%): 0/100%
+[arena.h]: Capacity: 4096B
+[arena.h]: Ratio (%): 17/100%

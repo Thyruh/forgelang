@@ -8,9 +8,9 @@
 #include "./tokenizer.h"
 #include "./typechecker.h"
 
-// TODO: argc check — if source file doesn't exist fopen returns NULL and fseek segfaults
-// TODO: --loose flag — disable full move/borrow checking
-// TODO: --freestanding flag — strip all libc and forgelang std dependencies
+// TODO: argc check - if source file doesn't exist fopen returns NULL and fseek segfaults
+// TODO: --loose flag - disable full move/borrow checking
+// TODO: --freestanding flag - strip all libc and forgelang std dependencies
 
 #ifndef DEBUG
 void print_tokens_as_strings(Tokens* tokens) {
@@ -22,7 +22,7 @@ void print_tokens_as_strings(Tokens* tokens) {
 void print_tokens_as_strings(Tokens* tokens) {
   puts(ANSI_COLOR_MAGENTA "\n```");
   for (size_t i = 0; i < tokens->size; i++) {
-    const char *s = token_repr(tokens->items[i]);
+    const char* s = token_repr(tokens->items[i]);
     if (tokens->items[i].type == char_lit) {
       printf("'%s' ", s);
     } else if (tokens->items[i].type == string_lit) {
@@ -70,8 +70,9 @@ int main(int argc, char** argv) {
   (void)system("cc -O3 -oout out.c");
 
   arena_free(arena);
+  // Those allocations are quite immovable to an arena cause they are resized like a billion times
   free(table.items);
-  free(tokens.items); // Those allocations are quite immovable to an arena cause they depend on da_append, which I dont want to touch for now
+  free(tokens.items);
   free(prog.items);
   return 0;
 }

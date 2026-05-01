@@ -41,7 +41,7 @@ static inline void parser_line_error(Parser* p, const char* err_msg, u8 offset) 
   p->index++;
   size_t visual_width = 0; // offset based on each tokens length
   while (p->index < p->tokens->size && p->tokens->items[p->index - offset].pos.line == pos.line) {
-    const char *s = token_repr(p->tokens->items[p->index - offset]);
+    const char* s = token_repr(p->tokens->items[p->index - offset]);
     printf(ANSI_COLOR_YELLOW "%s ", s);
     if (p->tokens->items[p->index - offset].pos.line_pos <= pos.line_pos) {
       // +1 is for a space that gets added between the tokens
@@ -158,7 +158,7 @@ static inline NodeExpr* parse_expr(Parser* p, int min_prec) {
   return lhs;
 }
 
-static inline NodeStmt* parse_stmt(Parser *p) {
+static inline NodeStmt* parse_stmt(Parser* p) {
   NodeStmt* stmt = arena_push(p->arena, NodeStmt);
   if ((peek(p, 0).type == mut || peek(p, 0).type == const_) 
       && peek(p, 1).type == ident 

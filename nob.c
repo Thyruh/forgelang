@@ -29,7 +29,7 @@ static bool compile_object(const char *c_path, const char *o_path, bool debug, b
     if (gdb) {
         cmd_append(&cmd,
             "-Wall", "-Wextra", "-std=c23",
-            "-ggdb3", "-O0",
+            "-ggdb3", "-O1",
             "-fno-omit-frame-pointer",
             "-fstack-protector-strong",
             "-fstack-clash-protection",
@@ -40,7 +40,7 @@ static bool compile_object(const char *c_path, const char *o_path, bool debug, b
     } else if (debug) {
         cmd_append(&cmd,
             "-Wall", "-Wextra", "-std=c23",
-            "-ggdb3", "-O0",
+            "-ggdb3", "-O1",
             "-fno-omit-frame-pointer",
             "-fstack-protector-strong",
             "-fstack-clash-protection",

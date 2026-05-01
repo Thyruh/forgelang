@@ -48,7 +48,7 @@ static inline void checker_line_error(Tokens* tokens, TokenPos pos, char* err_ms
   }
 
   puts(ANSI_COLOR_RESET);
-}
+} // checker_line_error()
 
 static inline size_t ident_exists(SymbolTable* table, Token token) {
   for (size_t i = 0; i < table->size; i++) {
@@ -72,6 +72,18 @@ static inline TokenType term_type(SymbolTable* table, NodeTerm* term) {
       }
   }
   return TERMINATE;
+}
+
+static inline TokenPos expr_pos(NodeExpr* expr) {
+    if (expr->type == EXPR_BIN_EXPR)
+        return expr->value.bin_expr->op.pos;
+    NodeTerm* term = expr->value.term;
+    switch (term->type) {
+        case TERM_INT_LIT:    return term->value.int_lit->int_lit.pos;
+        case TERM_STRING_LIT: return term->value.string_lit->string_lit.pos;
+        case TERM_CHAR_LIT:   return term->value.char_lit->char_lit.pos;
+        case TERM_IDENT:      return term->value.ident->ident.pos;
+    }
 }
 
 static inline void check_assignment_compat(
@@ -121,14 +133,13 @@ static inline void check_assignment_compat(
 
   snprintf(e.message, sizeof(e.message), "%s", msg);
   da_append(errors, e);
-}
+} // check_assignment_compat()
 
 static inline bool check_type_compat(TokenType a, TokenType b) {
   return (
       (is_numeric(a) && is_numeric(b)) ||
       (is_string_type(a) && is_string_type(b)) ||
-      (is_char_type(a) && is_char_type(b))
-      );
+      (is_char_type(a) && is_char_type(b)));
 }
 
 static inline TokenType typecheck_expr(
@@ -198,7 +209,7 @@ static inline TokenType typecheck_expr(
   }
 
   return lhs;
-}
+} // typecheck_expr()
 
 static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack* errors) {
   switch (stmt->type) {
@@ -212,7 +223,7 @@ static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack
           Error e = {
             .code = ERROR_TYPE_EXPECTED_INT,
             .trace = {0},
-            .pos = stmt->stmt_exit->expr->value.term->value.ident->ident.pos
+            .pos = expr_pos(stmt->stmt_exit->expr)
           };
           snprintf(e.message, sizeof(e.message), "Exit expects integer expression");
           da_append(errors, e);
@@ -229,7 +240,7 @@ static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack
           Error e = {
             .code = ERROR_TYPE_EXPECTED_STRING,
             .trace = {0},
-            .pos = stmt->stmt_print->expr->value.term->value.ident->ident.pos
+            .pos = expr_pos(stmt->stmt_print->expr)
           };
           snprintf(e.message, sizeof(e.message), "println expects string expression");
           da_append(errors, e);
@@ -274,7 +285,7 @@ static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack
             );
       } break;
   }
-}
+} // typecheck_stmt()
 
 void typecheck_prog(SymbolTable* table, NodeProg* prog, Tokens* tokens) {
   ErrorStack err_stack = {0};

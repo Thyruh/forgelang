@@ -70,7 +70,7 @@ static inline void gen_expr(Generator* gen, NodeExpr* expr) {
   }
 }
 
-// TODO: integer overflow — exit instead of wrapping
+// TODO: integer overflow - exit instead of wrapping
 static inline void gen_stmt(Generator* gen, NodeStmt* stmt) {
   switch (stmt->type) {
   case STMT_LET: 

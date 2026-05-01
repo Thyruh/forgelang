@@ -91,7 +91,7 @@ typedef enum {
   STMT_ASSIGN
 } NodeStmtType;
 
-/// The ident inside expr is obviously the the one on the right that supposedely already exists
+/// The ident inside expr is the rhs value
 typedef struct {
   NodeStmtType type;
   union {
@@ -114,7 +114,7 @@ typedef struct {
   bool mut;
 } Symbol;
 
-// TODO: symbol table — per-type partitioned dynamic arrays, separate variable and const sections
+// TODO: symbol table - per-type partitioned dynamic arrays, separate variable and const sections
 typedef struct {
   Symbol* items;
   size_t size;

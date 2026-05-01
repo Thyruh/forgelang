@@ -87,7 +87,7 @@ const char* tokentype_str(TokenType t) {
     case TERMINATE:
       return "TERMINATE";
     default:
-      return "unknown";
+      return "UNKNOWN";
   }
 }
 
@@ -201,6 +201,8 @@ const char* token_repr(Token t) {
       return "~";
     case TERMINATE:
       return "EOF";
+    default:
+      return "UNKNOWN";
   }
 }
 
