@@ -112,7 +112,7 @@ static inline NodeTerm* parse_term(Parser* p) {
     term->type = TERM_IDENT;
   }
   else {
-    parser_line_error(p, "Incomplete binary expression", 1);
+    parser_line_error(p, "Incomplete expression", 1);
     exit(1);
   }
   return term;

@@ -287,6 +287,9 @@ Tokens tokenize(Tokenizer* t) {
 
     if (ch == ' ' || ch == '\t' || ch == '\r') {
       consume(t);
+      while (peek(t) == ' ' ||  peek (t)== '\t' || peek(t) == '\r'){
+        consume(t);
+      }
       continue;
     }
 
@@ -419,7 +422,7 @@ Tokens tokenize(Tokenizer* t) {
     }
 
     switch (ch) {
-      case '\'': 
+      case '\'':
         {
           TokenPos p = {t->pos.line, start};
           consume(t);
