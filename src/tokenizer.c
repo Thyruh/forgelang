@@ -248,6 +248,34 @@ const char* get_type(TokenType type) {
   }
 }
 
+typedef struct {
+  const char *name;
+  TokenType type;
+} Keyword;
+
+static const Keyword keywords[] = {
+  {"println", println},
+  {"const", const_},
+  {"mut", mut},
+  {"exit", exit_},
+  {"i8", i8_}, {"i16", i16_}, {"i32", i32_}, {"i64", i64_},
+  {"u8", u8_}, {"u16", u16_}, {"u32", u32_}, {"u64", u64_},
+  {"usize", usize},
+  {"f32", f32_}, {"f64", f64_},
+  {"ptr", ptr}, {"uptr", uptr},
+  {"bool", bool_},
+  {"string", string},
+  {"char", char_}, {"uchar", uchar_},
+};
+
+TokenType lookup_keyword(const char *s) {
+  for (size_t i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
+    if (strcmp(s, keywords[i].name) == 0) {
+      return keywords[i].type;
+    }
+  }
+  return ident;
+}
 Tokenizer Tokenizer_create(char** src, size_t length, mem_arena* arena) {
   Tokenizer t = {0};
   t.length = length;
@@ -299,96 +327,19 @@ Tokens tokenize(Tokenizer* t) {
       }
       da_append(&buf, '\0');
       TokenPos start_pos = {t->pos.line, start};
-      if (!strcmp(buf.items, "println")) {
-        da_append(&tokens, ((Token){.type = println, .value = "", .pos = start_pos}));
-        da_clear(&buf);
+
+      TokenType type = lookup_keyword(buf.items);
+
+      if (type != ident) {
+        da_append(&tokens, ((Token){.type = type, .value = "", .pos = start_pos}));
       }
-      else if (!strcmp(buf.items, "const")) {
-        da_append(&tokens, ((Token){.type = const_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "mut")) {
-        da_append(&tokens, ((Token){.type = mut, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "exit")) {
-        da_append(&tokens, ((Token){.type = exit_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "i8")) {
-        da_append(&tokens, ((Token){.type = i8_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "i16")) {
-        da_append(&tokens, ((Token){.type = i16_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "i32")) {
-        da_append(&tokens, ((Token){.type = i32_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "i64")) {
-        da_append(&tokens, ((Token){.type = i64_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "u8")) {
-        da_append(&tokens, ((Token){.type = u8_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "u16")) {
-        da_append(&tokens, ((Token){.type = u16_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "u32")) {
-        da_append(&tokens, ((Token){.type = u32_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }  
-      else if (!strcmp(buf.items, "u64")) {
-        da_append(&tokens, ((Token){.type = u64_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "usize")) {
-        da_append(&tokens, ((Token){.type = usize, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "f32")) {
-        da_append(&tokens, ((Token){.type = f32_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "f64")) {
-        da_append(&tokens, ((Token){.type = f64_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      } 
-      else if (!strcmp(buf.items, "ptr")) {
-        da_append(&tokens, ((Token){.type = ptr, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "uptr")) {
-        da_append(&tokens, ((Token){.type = uptr, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "bool")) {
-        da_append(&tokens, ((Token){.type = bool_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "string")) {
-        da_append(&tokens, ((Token){.type = string, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "char")) {
-        da_append(&tokens, ((Token){.type = char_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      }
-      else if (!strcmp(buf.items, "uchar")) {
-        da_append(&tokens, ((Token){.type = uchar_, .value = "", .pos = start_pos}));
-        da_clear(&buf);
-      } 
       else {
         char* name = arena_push_arr(t->arena, char, buf.size);
         memcpy(name, buf.items, buf.size);
         da_append(&tokens, ((Token){.type = ident, .value = name, .pos = start_pos}));
-        da_clear(&buf);
       }
+
+      da_clear(&buf);
       continue;
     }
 
