@@ -39,7 +39,7 @@ static inline void checker_line_error(Tokens* tokens, TokenPos pos, char* err_ms
       printf("'%s' ", s);
     } else if (tokens->items[i].type == string_lit) {
       printf("\"%s\" ", s);
-    } else if (s[0] != ';') {
+    } else if (s[1] != ';') {
       printf("%s ", s);
     } else {
       printf(";");
@@ -50,6 +50,8 @@ static inline void checker_line_error(Tokens* tokens, TokenPos pos, char* err_ms
   puts(ANSI_COLOR_RESET);
 } // checker_line_error()
 
+/// On failure returns `SIZE_MAX` 
+/// On success returns the index `i` of the symbol inside the table
 static inline size_t ident_exists(SymbolTable* table, Token token) {
   for (size_t i = 0; i < table->size; i++) {
     if (!strcmp(table->items[i].ident, token.value)) {
@@ -70,6 +72,7 @@ static inline TokenType term_type(SymbolTable* table, NodeTerm* term) {
         if (i == SIZE_MAX) return TERMINATE;
         return table->items[i].type;
       }
+    default: return TERMINATE;
   }
   return TERMINATE;
 }
@@ -114,13 +117,16 @@ static inline void check_assignment_compat(
   if (is_numeric(lhs_type)) {
     code = ERROR_TYPE_EXPECTED_INT;
     msg = "Expected integer type";
-  } else if (is_string_type(lhs_type)) {
+  }
+  else if (is_string_type(lhs_type)) {
     code = ERROR_TYPE_EXPECTED_STRING;
     msg = "Expected string type";
-  } else if (is_char_type(lhs_type)) {
+  }
+  else if (is_char_type(lhs_type)) {
     code = ERROR_TYPE_EXPECTED_CHAR;
     msg = "Expected char type";
-  } else {
+  }
+  else {
     code = ERROR_TYPE_TYPE_MISMATCH;
     msg = "Type mismatch";
   }
@@ -159,7 +165,6 @@ static inline TokenType typecheck_expr(
       snprintf(e.message, sizeof(e.message), "Unknown identifier");
       da_append(errors, e);
     }
-
     return tt;
   }
 
@@ -213,7 +218,6 @@ static inline TokenType typecheck_expr(
 
 static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack* errors) {
   switch (stmt->type) {
-
     case STMT_EXIT: 
       {
         TokenType t = typecheck_expr(table, stmt->stmt_exit->expr, errors);
