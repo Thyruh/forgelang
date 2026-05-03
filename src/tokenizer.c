@@ -206,55 +206,16 @@ const char* token_repr(Token t) {
   }
 }
 
-const char* get_type(TokenType type) {
-  switch (type) {
-    case char_:
-      return "char";
-    case uchar_:
-      return "unsigned char";
-    case i8_:
-      return "__INT8_TYPE__";
-    case i16_:
-      return "__INT16_TYPE__";
-    case i32_:
-      return "__INT32_TYPE__";
-    case i64_:
-      return "__INT64_TYPE__";
-    case u8_:
-      return "__UINT8_TYPE__";
-    case u16_:
-      return "__UINT16_TYPE__";
-    case u32_:
-      return "__UINT32_TYPE__";
-    case u64_:
-      return "__UINT64_TYPE__";
-    case usize:
-      return "size_t";
-    case f32_:
-      return "float";
-    case f64_:
-      return "double";
-    case bool_:
-      return "_Bool";
-    case ptr:
-      return "__INTPTR_TYPE__";
-    case uptr:
-      return "__UINTPTR_TYPE__";
-    case string:
-      return "char*"; // to change later, placeholder
-    default:
-      printf(ANSI_COLOR_RED "[get_type()]: Unknown type `%s`\n" ANSI_COLOR_RESET, tokentype_str(type));
-      exit(1);
-  }
-}
-
 typedef struct {
   const char *name;
   TokenType type;
 } Keyword;
 
 static const Keyword keywords[] = {
+  {"print", print},
   {"println", println},
+  {"write", write},
+  {"writeln", writeln},
   {"const", const_},
   {"mut", mut},
   {"exit", exit_},
@@ -561,7 +522,7 @@ Tokens tokenize(Tokenizer* t) {
         } break;
 
       default:
-        printf("Error: invalid character: '%c'.\n", consume(t));
+        printf(ANSI_COLOR_RED"Error: invalid character: '%c'.\n"ANSI_COLOR_RESET, consume(t));
         // exit(1);
     }
   }

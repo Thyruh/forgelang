@@ -73,6 +73,18 @@ typedef struct {
 } NodeStmtPrint;
 
 typedef struct {
+  NodeExpr* expr;
+} NodeStmtPrintln;
+
+typedef struct {
+  NodeExpr* expr;
+} NodeStmtWrite;
+
+typedef struct {
+  NodeExpr* expr;
+} NodeStmtWriteln;
+
+typedef struct {
   Token ident;
   NodeExpr* expr;
   TokenType type;
@@ -88,6 +100,9 @@ typedef enum {
   STMT_EXIT,
   STMT_LET,
   STMT_PRINTLN,
+  STMT_PRINT,
+  STMT_WRITELN,
+  STMT_WRITE,
   STMT_ASSIGN
 } NodeStmtType;
 
@@ -99,6 +114,9 @@ typedef struct {
     NodeStmtExit* stmt_exit;
     NodeStmtLet* stmt_let;
     NodeStmtPrint* stmt_print;
+    NodeStmtPrintln* stmt_println;
+    NodeStmtWrite* stmt_write;
+    NodeStmtWriteln* stmt_writeln;
   };
 } NodeStmt;
 

@@ -28,7 +28,7 @@ static bool compile_object(const char *c_path, const char *o_path, bool debug, b
     cmd_append(&cmd, "cc");
     if (gdb) {
         cmd_append(&cmd,
-            "-Wall", "-Wextra", "-std=c23",
+            "-Wall", "-Wextra", "-std=c2x",
             "-ggdb3", "-O1",
             "-fno-omit-frame-pointer",
             "-fstack-protector-strong",
@@ -39,7 +39,7 @@ static bool compile_object(const char *c_path, const char *o_path, bool debug, b
         );
     } else if (debug) {
         cmd_append(&cmd,
-            "-Wall", "-Wextra", "-std=c23",
+            "-Wall", "-Wextra", "-std=c2x",
             "-ggdb3", "-O1",
             "-fno-omit-frame-pointer",
             "-fstack-protector-strong",
@@ -52,7 +52,7 @@ static bool compile_object(const char *c_path, const char *o_path, bool debug, b
         );
     } else {
         cmd_append(&cmd,
-            "-Wall", "-Wextra", "-std=c23", "-pedantic", "-O3",
+            "-Wall", "-Wextra", "-std=c2x", "-pedantic", "-O3",
             "-D_FORTIFY_SOURCE=2",
             "-fstack-protector-strong",
             "-fstack-clash-protection",

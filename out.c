@@ -9,11 +9,16 @@ int main(void) {
     char glyph = '4';
     size_t size = 100;
     size = 10;
+    printf("%s", nebula);
+    puts("");
+    printf("%s", nebula);
+    puts("");
     char* banner = "Hello, Forgelang!";
     char* new = banner;
     new = "Hello, World!";
     puts(new);
     size_t bravo = 69;
     bravo = 3;
+    printf("%s", new);
     return exit_code;
 }

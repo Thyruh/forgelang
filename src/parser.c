@@ -203,12 +203,42 @@ static inline NodeStmt* parse_stmt(Parser* p) {
     try_consume(p, semi, "Expected a ';'");
   }
   else if (peek(p, 0).type == println && peek(p, 1).type == open_paren) {
-    NodeStmtPrint* stmt_println = arena_push(p->arena, NodeStmtPrint);
+    NodeStmtPrintln* stmt_println = arena_push(p->arena, NodeStmtPrintln);
     consume(p);
     consume(p);
     stmt_println->expr = parse_expr(p, 0);
-    stmt->stmt_print = stmt_println;
+    stmt->stmt_println = stmt_println;
     stmt->type = STMT_PRINTLN;
+    try_consume(p, close_paren, "Expected a ')'");
+    try_consume(p, semi, "Expected a ';'");
+  }
+  else if (peek(p, 0).type == print && peek(p, 1).type == open_paren) {
+    NodeStmtPrint* stmt_print = arena_push(p->arena, NodeStmtPrint);
+    consume(p);
+    consume(p);
+    stmt_print->expr = parse_expr(p, 0);
+    stmt->stmt_print = stmt_print;
+    stmt->type = STMT_PRINT;
+    try_consume(p, close_paren, "Expected a ')'");
+    try_consume(p, semi, "Expected a ';'");
+  }
+  else if (peek(p, 0).type == writeln && peek(p, 1).type == open_paren) {
+    NodeStmtWriteln* stmt_writeln = arena_push(p->arena, NodeStmtWriteln);
+    consume(p);
+    consume(p);
+    stmt_writeln->expr = parse_expr(p, 0);
+    stmt->stmt_writeln = stmt_writeln;
+    stmt->type = STMT_WRITELN;
+    try_consume(p, close_paren, "Expected a ')'");
+    try_consume(p, semi, "Expected a ';'");
+  }
+  else if (peek(p, 0).type == write && peek(p, 1).type == open_paren) {
+    NodeStmtWrite* stmt_write = arena_push(p->arena, NodeStmtWrite);
+    consume(p);
+    consume(p);
+    stmt_write->expr = parse_expr(p, 0);
+    stmt->stmt_write = stmt_write;
+    stmt->type = STMT_WRITE;
     try_consume(p, close_paren, "Expected a ')'");
     try_consume(p, semi, "Expected a ';'");
   }
@@ -224,6 +254,5 @@ NodeProg parse_prog(Parser* p) {
     NodeStmt* stmt = parse_stmt(p);
     da_append(&prog, *stmt);
   }
-  puts(ANSI_COLOR_GREEN "[lexer]: Backend pipeline completed successfully." ANSI_COLOR_RESET);
   return prog;
 }

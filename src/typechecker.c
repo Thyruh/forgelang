@@ -232,6 +232,22 @@ static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack
 
     case STMT_PRINTLN: 
       {
+        TokenType t = typecheck_expr(table, stmt->stmt_println->expr, errors);
+
+        if (t == TERMINATE) break;
+
+        if (!is_string_type(t)) {
+          Error e = {
+            .code = ERROR_TYPE_EXPECTED_STRING,
+            .trace = {0},
+            .pos = expr_pos(stmt->stmt_println->expr)
+          };
+          snprintf(e.message, sizeof(e.message), "println expects string expression");
+          da_append(errors, e);
+        }
+      } break;
+    case STMT_PRINT: 
+      {
         TokenType t = typecheck_expr(table, stmt->stmt_print->expr, errors);
 
         if (t == TERMINATE) break;
@@ -242,10 +258,43 @@ static inline void typecheck_stmt(SymbolTable* table, NodeStmt* stmt, ErrorStack
             .trace = {0},
             .pos = expr_pos(stmt->stmt_print->expr)
           };
-          snprintf(e.message, sizeof(e.message), "println expects string expression");
+          snprintf(e.message, sizeof(e.message), "print expects string expression");
           da_append(errors, e);
         }
       } break;
+    case STMT_WRITELN: 
+      {
+        TokenType t = typecheck_expr(table, stmt->stmt_writeln->expr, errors);
+
+        if (t == TERMINATE) break;
+
+        if (!is_string_type(t)) {
+          Error e = {
+            .code = ERROR_TYPE_EXPECTED_STRING,
+            .trace = {0},
+            .pos = expr_pos(stmt->stmt_writeln->expr)
+          };
+          snprintf(e.message, sizeof(e.message), "writeln expects string expression");
+          da_append(errors, e);
+        }
+      } break;
+    case STMT_WRITE: 
+      {
+        TokenType t = typecheck_expr(table, stmt->stmt_write->expr, errors);
+
+        if (t == TERMINATE) break;
+
+        if (!is_string_type(t)) {
+          Error e = {
+            .code = ERROR_TYPE_EXPECTED_STRING,
+            .trace = {0},
+            .pos = expr_pos(stmt->stmt_write->expr)
+          };
+          snprintf(e.message, sizeof(e.message), "write expects string expression");
+          da_append(errors, e);
+        }
+      } break;
+
     case STMT_LET: 
       {
         TokenType rhs = typecheck_expr(table, stmt->stmt_let->expr, errors);
@@ -301,5 +350,5 @@ void typecheck_prog(SymbolTable* table, NodeProg* prog, Tokens* tokens) {
 
   if (err_stack.size > 0) exit(1);
 
-  printf(ANSI_COLOR_GREEN "[typechecker]: Semantic analysis finished successfully.\n" ANSI_COLOR_RESET);
+  puts(ANSI_COLOR_GREEN "[typechecker]: Backend pipeline completed successfully." ANSI_COLOR_RESET);
 }
